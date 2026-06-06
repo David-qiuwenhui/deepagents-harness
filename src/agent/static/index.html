@@ -1576,6 +1576,22 @@ async function handleSubmit(e) {
       body: JSON.stringify({ message: text, history }),
     });
 
+    if (!res.ok) {
+      removeThinking();
+      if (res.status === 401) {
+        document.getElementById('authOverlay').classList.remove('auth-hidden');
+        document.querySelector('.app').classList.add('auth-hidden');
+        bodyEl.innerHTML = '[认证已过期，请重新登录]';
+      } else {
+        bodyEl.innerHTML = renderMarkdown('[服务器错误] HTTP ' + res.status + ' — 请检查 ZHIPUAI_API_KEY 是否已配置');
+        bodyEl.classList.add('md-body');
+      }
+      isStreaming = false;
+      sendBtn.disabled = false;
+      setStatus('Ready', false);
+      return;
+    }
+
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
@@ -1626,7 +1642,10 @@ async function handleSubmit(e) {
   }
 
   // Final render to ensure last tokens are parsed
-  if (fullContent.ref) {
+  if (!fullContent.ref) {
+    bodyEl.innerHTML = renderMarkdown('模型未返回任何内容。可能原因：\n\n1. **ZHIPUAI_API_KEY 未配置** — 请在 HF Spaces 的 Settings → Repository secrets 中添加\n2. **网络超时** — 模型 API 响应超时\n3. **SSE 流被代理缓冲** — HF Spaces 反向代理未正确转发流式数据');
+    bodyEl.classList.add('md-body');
+  } else {
     bodyEl.innerHTML = renderMarkdown(fullContent.ref);
     bodyEl.classList.add('md-body');
   }

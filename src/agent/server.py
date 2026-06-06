@@ -22,6 +22,22 @@ load_dotenv()
 app = FastAPI(title="DeepAgents Chat")
 
 ACCESS_PASSWORD = os.environ.get("ACCESS_PASSWORD", "")
+ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY", "")
+
+if not ZHIPUAI_API_KEY:
+    print("WARNING: ZHIPUAI_API_KEY is not set. Chat will not work.")
+else:
+    print(f"ZHIPUAI_API_KEY configured ({len(ZHIPUAI_API_KEY)} chars)")
+
+
+@app.get("/api/health")
+async def health():
+    return {
+        "status": "ok",
+        "api_key_configured": bool(ZHIPUAI_API_KEY),
+        "password_configured": bool(ACCESS_PASSWORD),
+    }
+
 
 _auth_sessions: set[str] = set()
 
@@ -86,10 +102,12 @@ TOOLS = [
 
 
 def _get_model() -> ChatOpenAI:
+    if not ZHIPUAI_API_KEY:
+        raise RuntimeError("ZHIPUAI_API_KEY is not configured")
     return ChatOpenAI(
         model="glm-5.1",
         base_url=ZHIPU_BASE_URL,
-        api_key=os.environ["ZHIPUAI_API_KEY"],
+        api_key=ZHIPUAI_API_KEY,
     )
 
 
@@ -127,6 +145,8 @@ async def chat(request: Request) -> StreamingResponse:
     )
 
     async def generate() -> AsyncGenerator[str, None]:
+        # Send SSE ping to flush proxy buffers immediately
+        yield ": ping\n\n"
         try:
             async for event in agent.astream_events(
                 {"messages": messages},
@@ -148,6 +168,7 @@ async def chat(request: Request) -> StreamingResponse:
 
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
         except Exception as e:
+            print(f"ERROR in chat generate: {type(e).__name__}: {e}")
             yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
