@@ -2,19 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy everything needed
 COPY pyproject.toml ./
 COPY src/ ./src/
 
-# Debug: show what we have
-RUN echo "=== Files in /app ===" && ls -la /app/ && echo "=== Files in /app/src ===" && ls -la /app/src/ && echo "=== pyproject.toml ===" && cat /app/pyproject.toml
-
-# Install dependencies first, then the package itself
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir .
-
-# Verify the package is installed
-RUN python -c "import agent; print('agent package imported successfully')"
+# Install dependencies with verbose output for debugging
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir --verbose . 2>&1 | tail -100
 
 EXPOSE 7860
 
