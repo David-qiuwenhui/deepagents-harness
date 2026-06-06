@@ -1046,10 +1046,12 @@ body {
   font-family: var(--font-display);
 }
 .auth-card .auth-btn:hover { opacity: 0.85; }
-.auth-card .auth-error {
-  color: #c0392b; font-size: 13px;
+.auth-card .auth-msg {
+  font-size: 13px;
   margin-top: 12px; display: none;
 }
+.auth-card .auth-msg.error { color: #c0392b; }
+.auth-card .auth-msg.success { color: #27ae60; }
 .auth-hidden { display: none !important; }
 </style>
 </head>
@@ -1062,7 +1064,7 @@ body {
       <input type="password" id="authInput" placeholder="密码" autocomplete="current-password">
       <button type="submit" class="auth-btn">进入</button>
     </form>
-    <div class="auth-error" id="authError">密码错误，请重试</div>
+    <div class="auth-msg" id="authMsg"></div>
   </div>
 </div>
 <div class="app">
@@ -1239,25 +1241,43 @@ async function checkAuth() {
 document.getElementById('authForm')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const pwd = document.getElementById('authInput').value;
-  const errEl = document.getElementById('authError');
+  const msgEl = document.getElementById('authMsg');
+  const btn = document.querySelector('.auth-btn');
+  btn.disabled = true;
+  btn.textContent = '验证中...';
+  msgEl.className = 'auth-msg';
+  msgEl.style.display = 'none';
   try {
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: pwd }),
     });
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById('authOverlay').classList.add('auth-hidden');
-      document.querySelector('.app').classList.remove('auth-hidden');
-      errEl.style.display = 'none';
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        msgEl.className = 'auth-msg success';
+        msgEl.textContent = '登录成功，正在进入...';
+        msgEl.style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('authOverlay').classList.add('auth-hidden');
+          document.querySelector('.app').classList.remove('auth-hidden');
+        }, 600);
+      }
     } else {
-      errEl.style.display = 'block';
+      msgEl.className = 'auth-msg error';
+      msgEl.textContent = '密码错误，请重试';
+      msgEl.style.display = 'block';
       document.getElementById('authInput').value = '';
+      document.getElementById('authInput').focus();
     }
   } catch {
-    errEl.style.display = 'block';
+    msgEl.className = 'auth-msg error';
+    msgEl.textContent = '网络错误，请重试';
+    msgEl.style.display = 'block';
   }
+  btn.disabled = false;
+  btn.textContent = '进入';
 });
 
 checkAuth();
