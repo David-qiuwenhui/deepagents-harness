@@ -9,3 +9,4 @@ build/
 .uv/
 *.png
 .playwright-mcp/
+workspace/
