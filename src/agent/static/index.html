@@ -439,6 +439,28 @@ body {
   30% { opacity: 1; transform: translateY(-5px); }
 }
 
+/* ── Typing indicator (in assistant message body) ── */
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+}
+.typing-indicator span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.3;
+  animation: typingDot 1.4s ease-in-out infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingDot {
+  0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+  30% { opacity: 1; transform: scale(1.3); }
+}
+
 /* ── Input ── */
 .input-area {
   flex-shrink: 0;
@@ -1485,7 +1507,7 @@ function createAssistantMessage() {
   div.innerHTML =
     '<div class="message-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg></div>' +
     '<div class="message-content"><div class="message-role">DeepAgents</div>' +
-    '<div class="message-body"></div></div>';
+    '<div class="message-body"><span class="typing-indicator"><span></span><span></span><span></span></span></div></div>';
   messagesInner.appendChild(div);
   return div.querySelector('.message-body');
 }
@@ -1536,6 +1558,11 @@ function removeThinking() { const el = document.getElementById('thinking'); if (
 function processFrame(data, bodyEl, fullContent) {
   logEvent(data);
   if (data.type === 'token') {
+    if (!fullContent._started) {
+      const indicator = bodyEl.querySelector('.typing-indicator');
+      if (indicator) indicator.remove();
+      fullContent._started = true;
+    }
     fullContent.ref += data.content;
     if (!fullContent._raf) {
       fullContent._raf = requestAnimationFrame(() => {
