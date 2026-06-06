@@ -1,14 +1,14 @@
 import json
 import os
+import secrets
 from collections.abc import AsyncGenerator
 from pathlib import Path
 
 from deepagents import create_deep_agent
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response as StarletteResponse, JSONResponse
+from starlette.responses import JSONResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.store.memory import InMemoryStore
@@ -22,25 +22,15 @@ app = FastAPI(title="DeepAgents Chat")
 
 ACCESS_PASSWORD = os.environ.get("ACCESS_PASSWORD", "")
 
-
-class AuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if not ACCESS_PASSWORD:
-            return await call_next(request)
-
-        if request.url.path == "/api/auth":
-            return await call_next(request)
-
-        if request.url.path.startswith("/api/"):
-            token = request.cookies.get("auth_token")
-            if token != ACCESS_PASSWORD:
-                return StarletteResponse(content="Unauthorized", status_code=401)
-            return await call_next(request)
-
-        return await call_next(request)
+_auth_sessions: set[str] = set()
 
 
-app.add_middleware(AuthMiddleware)
+def _check_auth(request: Request) -> None:
+    if not ACCESS_PASSWORD:
+        return
+    token = request.cookies.get("auth_token")
+    if token not in _auth_sessions:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @app.post("/api/auth")
@@ -49,15 +39,28 @@ async def authenticate(request: Request):
     password = body.get("password", "")
     if password != ACCESS_PASSWORD:
         return JSONResponse({"success": False, "message": "密码错误"}, status_code=401)
+    token = secrets.token_hex(32)
+    _auth_sessions.add(token)
     response = JSONResponse({"success": True})
     response.set_cookie(
         key="auth_token",
-        value=ACCESS_PASSWORD,
+        value=token,
         httponly=True,
+        secure=bool(ACCESS_PASSWORD),
         max_age=86400 * 30,
         samesite="lax",
     )
     return response
+
+
+@app.get("/api/auth/check")
+async def auth_check(request: Request):
+    if not ACCESS_PASSWORD:
+        return {"authenticated": True}
+    token = request.cookies.get("auth_token")
+    if token in _auth_sessions:
+        return {"authenticated": True}
+    raise HTTPException(status_code=401, detail="Not authenticated")
 
 ZHIPU_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4/"
 SYSTEM_PROMPT = (
@@ -89,7 +92,7 @@ async def index():
     return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
 
 
-@app.post("/api/chat")
+@app.post("/api/chat", dependencies=[Depends(_check_auth)])
 async def chat(request: Request) -> StreamingResponse:
     body = await request.json()
     user_message = body.get("message", "")
