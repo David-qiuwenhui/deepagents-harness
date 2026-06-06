@@ -1228,11 +1228,7 @@ async function checkAuth() {
   const overlay = document.getElementById('authOverlay');
   if (!overlay) return;
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: '__auth_check__' }),
-    });
+    const res = await fetch('/api/auth/check');
     if (res.status === 401) {
       overlay.classList.remove('auth-hidden');
       document.querySelector('.app').classList.add('auth-hidden');
