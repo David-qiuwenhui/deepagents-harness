@@ -7,6 +7,8 @@ from deepagents import create_deep_agent
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response as StarletteResponse, JSONResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.store.memory import InMemoryStore
@@ -17,6 +19,45 @@ from agent.tools import calculate, get_current_time, list_directory, read_file, 
 load_dotenv()
 
 app = FastAPI(title="DeepAgents Chat")
+
+ACCESS_PASSWORD = os.environ.get("ACCESS_PASSWORD", "")
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if not ACCESS_PASSWORD:
+            return await call_next(request)
+
+        if request.url.path == "/api/auth":
+            return await call_next(request)
+
+        if request.url.path.startswith("/api/"):
+            token = request.cookies.get("auth_token")
+            if token != ACCESS_PASSWORD:
+                return StarletteResponse(content="Unauthorized", status_code=401)
+            return await call_next(request)
+
+        return await call_next(request)
+
+
+app.add_middleware(AuthMiddleware)
+
+
+@app.post("/api/auth")
+async def authenticate(request: Request):
+    body = await request.json()
+    password = body.get("password", "")
+    if password != ACCESS_PASSWORD:
+        return JSONResponse({"success": False, "message": "密码错误"}, status_code=401)
+    response = JSONResponse({"success": True})
+    response.set_cookie(
+        key="auth_token",
+        value=ACCESS_PASSWORD,
+        httponly=True,
+        max_age=86400 * 30,
+        samesite="lax",
+    )
+    return response
 
 ZHIPU_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4/"
 SYSTEM_PROMPT = (
