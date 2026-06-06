@@ -4,6 +4,7 @@ from langgraph.store.memory import InMemoryStore
 from agent.config import get_model
 from agent.memory_tools import list_memories, recall_memory, save_memory
 from agent.tools import calculate, get_current_time, list_directory, read_file, web_search, write_file
+from agent.wiki_tools import ingest_doc, list_wiki, search_wiki
 
 
 def main():
@@ -12,6 +13,7 @@ def main():
         get_current_time, calculate, web_search,
         read_file, write_file, list_directory,
         save_memory, recall_memory, list_memories,
+        ingest_doc, search_wiki, list_wiki,
     ]
 
     agent = create_deep_agent(

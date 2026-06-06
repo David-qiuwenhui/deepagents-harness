@@ -33,6 +33,8 @@
   --green-light: rgba(120, 140, 93, 0.08);
   --purple: #8b5cf6;
   --purple-light: rgba(139, 92, 246, 0.08);
+  --teal: #0d9488;
+  --teal-light: rgba(13, 148, 136, 0.08);
   --radius: 16px;
   --radius-sm: 10px;
   --radius-xs: 6px;
@@ -381,6 +383,11 @@ body {
 .tool-event.memory .tool-name { color: var(--purple); }
 .tool-event.memory .tool-icon { background: var(--purple-light); }
 .tool-event.memory .tool-icon svg { stroke: var(--purple); }
+
+.tool-event.wiki { background: var(--teal-light); border-color: rgba(13, 148, 136, 0.15); }
+.tool-event.wiki .tool-name { color: var(--teal); }
+.tool-event.wiki .tool-icon { background: var(--teal-light); }
+.tool-event.wiki .tool-icon svg { stroke: var(--teal); }
 
 /* ── Thinking ── */
 .thinking {
@@ -1473,11 +1480,13 @@ function createAssistantMessage() {
 }
 
 const MEMORY_TOOLS = ['save_memory', 'recall_memory', 'list_memories'];
+const WIKI_TOOLS = ['ingest_doc', 'search_wiki', 'list_wiki'];
 
 function addToolCall(name, args) {
   const div = document.createElement('div');
   const isMemory = MEMORY_TOOLS.includes(name);
-  div.className = 'tool-event' + (isMemory ? ' memory' : '');
+  const isWiki = WIKI_TOOLS.includes(name);
+  div.className = 'tool-event' + (isMemory ? ' memory' : '') + (isWiki ? ' wiki' : '');
   div.innerHTML =
     '<div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>' +
     '<div><div class="tool-name">' + escapeHtml(name) + '</div>' +
@@ -1489,7 +1498,8 @@ function addToolCall(name, args) {
 function addToolResult(name, result) {
   const div = document.createElement('div');
   const isMemory = MEMORY_TOOLS.includes(name);
-  div.className = 'tool-event result' + (isMemory ? ' memory' : '');
+  const isWiki = WIKI_TOOLS.includes(name);
+  div.className = 'tool-event result' + (isMemory ? ' memory' : '') + (isWiki ? ' wiki' : '');
   const short = result.length > 200 ? result.slice(0, 200) + '...' : result;
   div.innerHTML =
     '<div class="tool-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +

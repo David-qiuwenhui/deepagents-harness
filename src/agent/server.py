@@ -15,6 +15,7 @@ from langgraph.store.memory import InMemoryStore
 
 from agent.memory_tools import list_memories, recall_memory, save_memory
 from agent.tools import calculate, get_current_time, list_directory, read_file, web_search, write_file
+from agent.wiki_tools import ingest_doc, list_wiki, search_wiki
 
 load_dotenv()
 
@@ -68,13 +69,19 @@ SYSTEM_PROMPT = (
     "你拥有长期记忆能力：\n"
     "- 当用户告诉你重要信息（如姓名、偏好、关键事实）时，主动使用 save_memory 工具保存\n"
     "- 当需要回忆之前的信息时，使用 recall_memory 工具搜索\n"
-    "- 用户要求列出所有记忆时，使用 list_memories 工具"
+    "- 用户要求列出所有记忆时，使用 list_memories 工具\n\n"
+    "你拥有知识库能力：\n"
+    "- 用户问业务知识、系统操作、项目规范等问题时，先用 search_wiki 搜索知识库\n"
+    "- 用户要求学习新文档时，用 ingest_doc 读取 raw/ 目录下的文档\n"
+    "- 整理文档后，用 write_file 将 Wiki 页面写入 wiki/ 目录，并更新 wiki/index.md 和 wiki/log.md\n"
+    "- 用户要求查看知识库时，使用 list_wiki 工具"
 )
 MEMORY_STORE = InMemoryStore()
 TOOLS = [
     get_current_time, calculate, web_search,
     read_file, write_file, list_directory,
     save_memory, recall_memory, list_memories,
+    ingest_doc, search_wiki, list_wiki,
 ]
 
 

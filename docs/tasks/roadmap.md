@@ -62,26 +62,46 @@
 
 ---
 
-## 阶段三：RAG 知识库
+## 阶段三：LLM-Wiki 知识库
 
-**目标**：让 Agent 从特定文档/知识库中检索信息，生成有据可依的回答。
+**目标**：基于 Karpathy LLM-Wiki 方法论，让 Agent 维护一个结构化的业务知识库，用户通过对话获取业务知识问答。
 
-### 子任务
+**方法论**：不使用传统 RAG（每次从原始文档检索），而是让 LLM 持续编译和维护一个结构化 Wiki 中间层。知识"编译一次、持续更新"。
 
-| # | 任务 | 说明 |
-|---|------|------|
-| 1 | 文档加载 | 支持 txt/md/pdf 等格式的文档导入 |
-| 2 | 文本分片 | 将长文档切分为适合检索的 chunk |
-| 3 | 向量化存储 | Embedding + 向量数据库 |
-| 4 | 检索策略 | 相似度搜索、混合检索、重排序 |
-| 5 | RAG 工具 | 封装为 Agent 可调用的工具 |
-| 6 | RAG UI | 展示检索来源和相关性分数 |
+**参考**：[Karpathy LLM-Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+
+### 三层架构
+
+```
+workspace/raw/       → 原始文档（不可变，业务文档源）
+workspace/wiki/      → Wiki 页面（LLM 维护，结构化知识）
+Schema (SYSTEM_PROMPT) → Agent 行为规则
+```
+
+### Phase 3A: Wiki 基础设施
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| 1 | Wiki 目录结构 | todo | workspace/wiki/ + index.md + log.md |
+| 2 | ingest_doc 工具 | todo | 读取 raw/ 文档，提取关键信息，生成/更新 Wiki 页面 |
+| 3 | search_wiki 工具 | todo | 搜索 index.md 定位相关页面，读取并合成回答 |
+| 4 | Wiki UI | todo | Inspector 展示 Wiki 检索过程 |
+
+### Phase 3B: 文档管理
+
+| # | 任务 | 状态 | 说明 |
+|---|------|------|------|
+| 5 | 文档上传 | todo | 前端支持上传 txt/md 文档到 raw/ |
+| 6 | PDF/DOCX 解析 | deferred | 支持更多格式的文档导入 |
+| 7 | Lint 巡检 | deferred | 定期检查 Wiki 矛盾、过时信息、孤立页面 |
+| 8 | 语义搜索升级 | deferred | 当 Wiki 规模超过 ~100 篇时，引入向量检索 |
 
 ### 完成标准
 
-- [ ] Agent 能基于知识库回答问题并引用来源
-- [ ] 支持增量添加文档
-- [ ] Inspector 展示检索过程和来源
+- [ ] Agent 能基于 Wiki 回答业务问题并引用来源
+- [ ] 支持通过工具摄入新文档到 Wiki
+- [ ] index.md 索引机制正常工作
+- [ ] Inspector 展示 Wiki 检索过程
 
 ### 学习要点
 
