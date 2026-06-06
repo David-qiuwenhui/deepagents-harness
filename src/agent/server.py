@@ -42,11 +42,21 @@ async def health():
 _auth_sessions: set[str] = set()
 
 
+def _get_auth_token(request: Request) -> str | None:
+    token = request.headers.get("x-auth-token")
+    if token and token in _auth_sessions:
+        return token
+    token = request.cookies.get("auth_token")
+    if token and token in _auth_sessions:
+        return token
+    return None
+
+
 def _check_auth(request: Request) -> None:
     if not ACCESS_PASSWORD:
         return
-    token = request.cookies.get("auth_token")
-    if token not in _auth_sessions:
+    if not _get_auth_token(request):
+        print(f"Auth failed. Sessions: {len(_auth_sessions)}, headers: {list(request.headers.keys())}")
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
@@ -58,24 +68,14 @@ async def authenticate(request: Request):
         return JSONResponse({"success": False, "message": "密码错误"}, status_code=401)
     token = secrets.token_hex(32)
     _auth_sessions.add(token)
-    response = JSONResponse({"success": True})
-    response.set_cookie(
-        key="auth_token",
-        value=token,
-        httponly=True,
-        secure=bool(ACCESS_PASSWORD),
-        max_age=86400 * 30,
-        samesite="lax",
-    )
-    return response
+    return JSONResponse({"success": True, "token": token})
 
 
 @app.get("/api/auth/check")
 async def auth_check(request: Request):
     if not ACCESS_PASSWORD:
         return {"authenticated": True}
-    token = request.cookies.get("auth_token")
-    if token in _auth_sessions:
+    if _get_auth_token(request):
         return {"authenticated": True}
     raise HTTPException(status_code=401, detail="Not authenticated")
 

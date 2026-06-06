@@ -1233,12 +1233,22 @@ const statusBadge = document.getElementById('statusBadge');
 const statusText = document.getElementById('statusText');
 
 /* ── Auth ── */
+function getAuthToken() { return localStorage.getItem('auth_token'); }
+
+async function authFetch(url, opts = {}) {
+  const token = getAuthToken();
+  const headers = { ...(opts.headers || {}) };
+  if (token) headers['X-Auth-Token'] = token;
+  return fetch(url, { ...opts, headers });
+}
+
 async function checkAuth() {
   const overlay = document.getElementById('authOverlay');
   if (!overlay) return;
   try {
-    const res = await fetch('/api/auth/check');
+    const res = await authFetch('/api/auth/check');
     if (res.status === 401) {
+      localStorage.removeItem('auth_token');
       overlay.classList.remove('auth-hidden');
       document.querySelector('.app').classList.add('auth-hidden');
     }
@@ -1263,6 +1273,7 @@ document.getElementById('authForm')?.addEventListener('submit', async (e) => {
     if (res.ok) {
       const data = await res.json();
       if (data.success) {
+        if (data.token) localStorage.setItem('auth_token', data.token);
         msgEl.className = 'auth-msg success';
         msgEl.textContent = '登录成功，正在进入...';
         msgEl.style.display = 'block';
@@ -1570,7 +1581,7 @@ async function handleSubmit(e) {
   let fullContent = { ref: '' };
 
   try {
-    const res = await fetch('/api/chat', {
+    const res = await authFetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text, history }),
@@ -1579,6 +1590,7 @@ async function handleSubmit(e) {
     if (!res.ok) {
       removeThinking();
       if (res.status === 401) {
+        localStorage.removeItem('auth_token');
         document.getElementById('authOverlay').classList.remove('auth-hidden');
         document.querySelector('.app').classList.add('auth-hidden');
         bodyEl.innerHTML = '[认证已过期，请重新登录]';
