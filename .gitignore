@@ -7,3 +7,5 @@ __pycache__/
 dist/
 build/
 .uv/
+*.png
+.playwright-mcp/
