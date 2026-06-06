@@ -9,7 +9,9 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
+from langgraph.store.memory import InMemoryStore
 
+from agent.memory_tools import list_memories, recall_memory, save_memory
 from agent.tools import calculate, get_current_time, list_directory, read_file, web_search, write_file
 
 load_dotenv()
@@ -17,8 +19,19 @@ load_dotenv()
 app = FastAPI(title="DeepAgents Chat")
 
 ZHIPU_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4/"
-SYSTEM_PROMPT = "你是一个有用的助手。你可以使用工具来完成任务。请用中文回答。"
-TOOLS = [get_current_time, calculate, web_search, read_file, write_file, list_directory]
+SYSTEM_PROMPT = (
+    "你是一个有用的助手。你可以使用工具来完成任务。请用中文回答。\n\n"
+    "你拥有长期记忆能力：\n"
+    "- 当用户告诉你重要信息（如姓名、偏好、关键事实）时，主动使用 save_memory 工具保存\n"
+    "- 当需要回忆之前的信息时，使用 recall_memory 工具搜索\n"
+    "- 用户要求列出所有记忆时，使用 list_memories 工具"
+)
+MEMORY_STORE = InMemoryStore()
+TOOLS = [
+    get_current_time, calculate, web_search,
+    read_file, write_file, list_directory,
+    save_memory, recall_memory, list_memories,
+]
 
 
 def _get_model() -> ChatOpenAI:
@@ -59,6 +72,7 @@ async def chat(request: Request) -> StreamingResponse:
         model=_get_model(),
         tools=TOOLS,
         system_prompt=SYSTEM_PROMPT,
+        store=MEMORY_STORE,
     )
 
     async def generate() -> AsyncGenerator[str, None]:
