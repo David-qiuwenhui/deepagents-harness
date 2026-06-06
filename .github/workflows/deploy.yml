@@ -12,6 +12,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify secrets
+        run: |
+          if [ -z "${{ secrets.HF_TOKEN }}" ]; then
+            echo "ERROR: HF_TOKEN is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.HF_SPACE_ID }}" ]; then
+            echo "ERROR: HF_SPACE_ID is not set"
+            exit 1
+          fi
+          echo "HF_SPACE_ID: ${{ secrets.HF_SPACE_ID }}"
+
       - name: Push to Hugging Face Spaces
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
