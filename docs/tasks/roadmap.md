@@ -12,17 +12,20 @@
 |---|------|------|--------|------|
 | 1 | `get_current_time` | done | — | 获取当前日期时间（已有） |
 | 2 | `calculate` | done | — | 计算数学表达式（已有） |
-| 3 | `web_search` | todo | P0 | 搜索互联网，获取最新信息 |
-| 4 | `read_file` | todo | P1 | 读取本地文件内容 |
-| 5 | `write_file` | todo | P1 | 写入/创建本地文件 |
-| 6 | `list_directory` | todo | P2 | 列出目录结构 |
+| 3 | `web_search` | done | P0 | 搜索互联网，获取最新信息（Tavily API） |
+| 4 | `read_file` | done | P1 | 读取本地文件内容（沙箱隔离） |
+| 5 | `write_file` | done | P1 | 写入/创建本地文件（自动建目录） |
+| 6 | `list_directory` | done | P2 | 列出目录结构 |
 | 7 | `run_code` | todo | P2 | 在沙箱中执行 Python 代码（安全考虑） |
+| 8 | `document_parse` | todo | P1 | 解析 PDF/DOCX/图片等文档，提取结构化文本 |
+| 9 | `document_compare` | todo | P1 | 将实际文档内容与期望内容做差异对比 |
+| 10 | `report_generate` | todo | P1 | 生成结构化对比报告 |
 
 ### 完成标准
 
-- [ ] 至少新增 2 个实用工具（web_search + file I/O）
-- [ ] 每个工具有清晰的 docstring 和输入验证
-- [ ] 通过 Chat UI 可实际调用并看到结果
+- [x] 至少新增 2 个实用工具（web_search + file I/O）
+- [x] 每个工具有清晰的 docstring 和输入验证
+- [ ] 通过 Chat UI 可实际调用并看到结果（基础工具已验证，业务工具待开发）
 - [ ] Inspector 面板正确显示工具调用事件
 
 ### 学习要点
