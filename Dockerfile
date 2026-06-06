@@ -2,17 +2,19 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy dependency files first for better Docker layer caching
+# Copy everything needed
 COPY pyproject.toml ./
-
-# Copy source code
 COPY src/ ./src/
 
-# Debug: verify files are present
-RUN ls -la /app/ && ls -la /app/src/
+# Debug: show what we have
+RUN echo "=== Files in /app ===" && ls -la /app/ && echo "=== Files in /app/src ===" && ls -la /app/src/ && echo "=== pyproject.toml ===" && cat /app/pyproject.toml
 
-# Install dependencies (non-editable for Docker)
-RUN pip install --no-cache-dir .
+# Install dependencies first, then the package itself
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir .
+
+# Verify the package is installed
+RUN python -c "import agent; print('agent package imported successfully')"
 
 EXPOSE 7860
 
