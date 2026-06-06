@@ -1,12 +1,12 @@
 from deepagents import create_deep_agent
 
 from agent.config import get_model
-from agent.tools import calculate, get_current_time, web_search
+from agent.tools import calculate, get_current_time, list_directory, read_file, web_search, write_file
 
 
 def main():
     model = get_model()
-    tools = [get_current_time, calculate, web_search]
+    tools = [get_current_time, calculate, web_search, read_file, write_file, list_directory]
 
     agent = create_deep_agent(
         model=model,

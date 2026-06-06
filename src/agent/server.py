@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from agent.tools import calculate, get_current_time, web_search
+from agent.tools import calculate, get_current_time, list_directory, read_file, web_search, write_file
 
 load_dotenv()
 
@@ -18,7 +18,7 @@ app = FastAPI(title="DeepAgents Chat")
 
 ZHIPU_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4/"
 SYSTEM_PROMPT = "你是一个有用的助手。你可以使用工具来完成任务。请用中文回答。"
-TOOLS = [get_current_time, calculate, web_search]
+TOOLS = [get_current_time, calculate, web_search, read_file, write_file, list_directory]
 
 
 def _get_model() -> ChatOpenAI:
