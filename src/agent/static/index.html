@@ -32,7 +32,6 @@
   --radius-xs: 6px;
   --shadow-sm: 0 1px 2px rgba(20, 20, 19, 0.04);
   --shadow: 0 1px 4px rgba(20, 20, 19, 0.06), 0 0 1px rgba(20, 20, 19, 0.04);
-  --shadow-lg: 0 4px 16px rgba(20, 20, 19, 0.08), 0 0 1px rgba(20, 20, 19, 0.04);
   --font-display: 'Poppins', sans-serif;
   --font-body: 'Lora', Georgia, serif;
   --font-mono: 'Fira Code', monospace;
@@ -47,14 +46,29 @@ body {
   font-size: 15px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Layout ── */
 .app {
-  width: 100%;
+  display: flex;
   height: 100vh;
+}
+
+.left-panel {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--border);
+}
+
+.right-panel {
+  width: 440px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-warm);
+  overflow: hidden;
 }
 
 /* ── Header ── */
@@ -87,11 +101,7 @@ body {
 
 .logo-mark svg { width: 18px; height: 18px; fill: white; }
 
-.header-title {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
+.header-title { display: flex; flex-direction: column; gap: 1px; }
 
 .logo-text {
   font-family: var(--font-display);
@@ -139,19 +149,39 @@ body {
 
 .status-badge.streaming .status-dot {
   background: var(--accent);
-  animation: statusPulse 1.2s ease-in-out infinite;
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
-@keyframes statusPulse {
+@keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ── Mobile Toggle ── */
+.inspector-toggle {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.inspector-toggle:hover { border-color: var(--blue); color: var(--blue); }
+.inspector-toggle.active { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+.inspector-toggle svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
 
 /* ── Chat Area ── */
 .chat-container {
   flex: 1;
   overflow-y: auto;
-  padding: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -208,13 +238,7 @@ body {
   line-height: 1.6;
 }
 
-.hints {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 4px;
-}
+.hints { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; }
 
 .hint-chip {
   font-family: var(--font-display);
@@ -263,20 +287,13 @@ body {
   margin-top: 2px;
 }
 
-.message.user .message-avatar {
-  background: var(--blue-light);
-  color: var(--blue);
-}
-
+.message.user .message-avatar { background: var(--blue-light); color: var(--blue); }
 .message.assistant .message-avatar {
   background: linear-gradient(135deg, #d97757 0%, #e89a7a 100%);
   color: white;
 }
 
-.message-content {
-  flex: 1;
-  min-width: 0;
-}
+.message-content { flex: 1; min-width: 0; }
 
 .message-role {
   font-family: var(--font-display);
@@ -303,11 +320,9 @@ body {
   border: 1px solid var(--border-light);
 }
 
-.message.assistant .message-body {
-  padding: 0;
-}
+.message.assistant .message-body { padding: 0; }
 
-/* ── Tool Events ── */
+/* ── Tool Events (in chat) ── */
 .tool-event {
   margin: 4px 0 4px 42px;
   display: flex;
@@ -351,11 +366,7 @@ body {
   line-height: 1.5;
 }
 
-.tool-event.result {
-  background: var(--green-light);
-  border-color: rgba(120, 140, 93, 0.15);
-}
-
+.tool-event.result { background: var(--green-light); border-color: rgba(120, 140, 93, 0.15); }
 .tool-event.result .tool-name { color: var(--green); }
 .tool-event.result .tool-icon { background: var(--green-light); }
 .tool-event.result .tool-icon svg { stroke: var(--green); }
@@ -418,10 +429,7 @@ body {
   padding: 16px 28px 20px;
 }
 
-.input-inner {
-  max-width: 740px;
-  margin: 0 auto;
-}
+.input-inner { max-width: 740px; margin: 0 auto; }
 
 .input-form {
   display: flex;
@@ -486,84 +494,33 @@ body {
   margin-top: 8px;
 }
 
-/* ── Header Right ── */
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.inspector-toggle {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted);
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.inspector-toggle:hover {
-  border-color: var(--blue);
-  color: var(--blue);
-}
-
-.inspector-toggle.active {
-  border-color: var(--blue);
-  color: var(--blue);
-  background: var(--blue-light);
-}
-
-.inspector-toggle svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-/* ── Stream Inspector (below input) ── */
-.inspector {
-  flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-  display: none;
-  flex-direction: column;
-  max-height: 340px;
-  min-height: 0;
-  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.inspector.open {
-  display: flex;
-}
-
-.inspector-bar {
+/* ── Right Panel: Toolbar ── */
+.panel-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 16px;
-  background: var(--bg-warm);
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
   flex-shrink: 0;
 }
 
-.inspector-bar-left {
+.panel-toolbar-left {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.inspector-title {
+.panel-title {
   font-family: var(--font-display);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
-.inspector-count {
+.panel-count {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-muted);
@@ -573,13 +530,13 @@ body {
   border: 1px solid var(--border-light);
 }
 
-.inspector-bar-right {
+.panel-toolbar-right {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
-.inspector-btn {
+.panel-btn {
   font-family: var(--font-display);
   font-size: 10px;
   font-weight: 500;
@@ -587,27 +544,25 @@ body {
   background: none;
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 2px 8px;
+  padding: 3px 8px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.inspector-btn:hover { color: var(--text); border-color: var(--text-muted); }
-.inspector-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
+.panel-btn:hover { color: var(--text); border-color: var(--text-muted); }
+.panel-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
 
-/* ── Statistics Bar ── */
-.stats-bar {
-  display: none;
+/* ── Right Panel: Stats ── */
+.panel-stats {
+  display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 16px;
-  background: var(--bg);
+  padding: 5px 16px;
   border-bottom: 1px solid var(--border-light);
+  background: var(--surface);
   flex-shrink: 0;
-  overflow-x: auto;
+  flex-wrap: wrap;
 }
-
-.stats-bar.visible { display: flex; }
 
 .stat-chip {
   display: flex;
@@ -616,7 +571,7 @@ body {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-secondary);
-  background: var(--surface);
+  background: var(--bg);
   padding: 2px 8px;
   border-radius: 10px;
   border: 1px solid var(--border-light);
@@ -638,37 +593,33 @@ body {
   white-space: nowrap;
 }
 
-/* ── Event Timeline ── */
-.timeline-bar {
+/* ── Right Panel: Timeline ── */
+.panel-timeline {
   display: none;
   align-items: center;
-  padding: 6px 16px;
-  background: var(--bg);
+  padding: 5px 16px;
+  background: var(--surface);
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
   overflow-x: auto;
   gap: 2px;
 }
 
-.timeline-bar.visible { display: flex; }
-.timeline-bar::-webkit-scrollbar { height: 3px; }
-.timeline-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.panel-timeline.visible { display: flex; }
+.panel-timeline::-webkit-scrollbar { height: 3px; }
+.panel-timeline::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 .timeline-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s;
   position: relative;
 }
 
-.timeline-dot:hover {
-  transform: scale(1.8);
-  z-index: 2;
-}
-
+.timeline-dot:hover { transform: scale(1.8); z-index: 2; }
 .timeline-dot.token { background: var(--accent); }
 .timeline-dot.tool_call { background: var(--blue); }
 .timeline-dot.tool_result { background: var(--green); }
@@ -692,13 +643,13 @@ body {
   pointer-events: none;
 }
 
-/* ── Step-through Controls ── */
+/* ── Right Panel: Step Controls ── */
 .step-controls {
   display: none;
   align-items: center;
   gap: 6px;
   padding: 4px 16px;
-  background: var(--bg);
+  background: var(--surface);
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
 }
@@ -710,7 +661,7 @@ body {
   font-size: 10px;
   font-weight: 500;
   color: var(--text-secondary);
-  background: var(--surface);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 3px 10px;
@@ -732,14 +683,151 @@ body {
   margin-left: auto;
 }
 
-/* ── SSE Protocol Card ── */
+/* ── Right Panel: Body ── */
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.panel-body::-webkit-scrollbar { width: 4px; }
+.panel-body::-webkit-scrollbar-track { background: transparent; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── Request Card ── */
+.request-card {
+  margin: 10px 12px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.request-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.request-header:hover { background: var(--bg-warm); }
+
+.request-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: white;
+  background: var(--green);
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.request-endpoint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.request-toggle {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.request-toggle.collapsed { transform: rotate(-90deg); }
+
+.request-body {
+  max-height: 200px;
+  overflow-y: auto;
+  transition: max-height 0.25s ease, padding 0.25s ease;
+}
+
+.request-body.collapsed {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.request-json {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  color: var(--text-secondary);
+  white-space: pre;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.json-key { color: var(--text); font-weight: 500; }
+.json-string { color: var(--green); }
+.json-number { color: var(--accent); }
+.json-bool { color: var(--blue); }
+.json-null { color: var(--text-muted); }
+
+/* ── Event Log ── */
+.event-entry {
+  display: flex;
+  gap: 8px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--border-light);
+  animation: logIn 0.15s ease both;
+  align-items: flex-start;
+}
+
+@keyframes logIn { from { opacity: 0; } to { opacity: 1; } }
+
+.event-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  padding-top: 1px;
+  min-width: 70px;
+}
+
+.event-type {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.event-type.token { color: var(--accent); background: var(--accent-light); }
+.event-type.tool_call { color: var(--blue); background: var(--blue-light); }
+.event-type.tool_result { color: var(--green); background: var(--green-light); }
+.event-type.done { color: var(--text-muted); background: rgba(176, 174, 165, 0.1); }
+.event-type.error { color: #c0392b; background: rgba(192, 57, 43, 0.08); }
+
+.event-data {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  word-break: break-all;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Protocol Card ── */
 .protocol-card {
   display: none;
-  margin: 8px 16px;
+  margin: 8px 12px;
   padding: 10px 14px;
-  background: var(--bg-warm);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   flex-shrink: 0;
 }
 
@@ -757,7 +845,6 @@ body {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: 0.03em;
 }
 
 .protocol-card-close {
@@ -766,9 +853,9 @@ body {
   color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
-  line-height: 1;
   padding: 0 2px;
 }
+
 .protocol-card-close:hover { color: var(--text); }
 
 .protocol-code {
@@ -783,7 +870,6 @@ body {
 .protocol-code .proto-key { color: var(--text); }
 .protocol-code .proto-val { color: var(--green); }
 .protocol-code .proto-comment { color: var(--text-muted); }
-.protocol-code .proto-delim { color: var(--text-muted); }
 
 .protocol-live {
   margin-top: 8px;
@@ -809,169 +895,192 @@ body {
   overflow-y: auto;
 }
 
-/* ── Inspector Log ── */
-.inspector-log {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 16px;
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  line-height: 1.6;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
-
-.inspector-log::-webkit-scrollbar { width: 4px; }
-.inspector-log::-webkit-scrollbar-track { background: transparent; }
-.inspector-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-.log-entry {
+/* ── Empty Panel State ── */
+.panel-empty {
   display: flex;
-  gap: 10px;
-  padding: 3px 0;
-  border-bottom: 1px solid var(--border-light);
-  animation: logIn 0.15s ease both;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 12px;
+  flex: 1;
 }
 
-@keyframes logIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.panel-empty-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
 }
 
-.log-time {
-  color: var(--text-muted);
-  flex-shrink: 0;
-  font-size: 10px;
-  padding-top: 1px;
-}
+.panel-empty-icon svg { width: 18px; height: 18px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; }
 
-.log-type {
-  flex-shrink: 0;
+.panel-empty-title {
+  font-family: var(--font-display);
+  font-size: 13px;
   font-weight: 500;
-  padding: 0 5px;
-  border-radius: 3px;
-  font-size: 10px;
-}
-
-.log-type.token { color: var(--accent); background: var(--accent-light); }
-.log-type.tool_call { color: var(--blue); background: var(--blue-light); }
-.log-type.tool_result { color: var(--green); background: var(--green-light); }
-.log-type.done { color: var(--text-muted); background: rgba(176, 174, 165, 0.1); }
-.log-type.error { color: #c0392b; background: rgba(192, 57, 43, 0.08); }
-
-.log-data {
   color: var(--text-secondary);
-  word-break: break-all;
-  white-space: pre-wrap;
 }
 
-.log-entry.highlighted {
-  background: var(--accent-light);
-  border-left: 2px solid var(--accent);
-  padding-left: 6px;
+.panel-empty-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 260px;
+  line-height: 1.6;
 }
+
+.panel-empty.hidden { display: none; }
 
 /* ── Responsive ── */
+@media (max-width: 900px) {
+  .right-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 440px;
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .right-panel.open { transform: translateX(0); }
+
+  .inspector-toggle { display: flex; }
+
+  .left-panel { border-right: none; }
+}
+
 @media (max-width: 640px) {
   .header { padding: 12px 16px; }
   .messages-inner { padding: 16px; }
   .input-area { padding: 12px 16px 16px; }
   .logo-sub { display: none; }
   .tool-event { margin-left: 0; }
-  .inspector { max-height: 260px; }
 }
 
-::selection {
-  background: var(--accent-light);
-  color: var(--accent-hover);
-}
+::selection { background: var(--accent-light); color: var(--accent-hover); }
 </style>
 </head>
 <body>
 <div class="app">
-  <header class="header">
-    <div class="header-left">
-      <div class="logo-mark">
-        <svg viewBox="0 0 24 24"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg>
-      </div>
-      <div class="header-title">
-        <span class="logo-text">DeepAgents</span>
-        <span class="logo-sub">Powered by GLM-5.1</span>
-      </div>
-    </div>
-    <div class="header-right">
-      <button class="inspector-toggle" id="inspectorToggle" onclick="toggleInspector()" title="Toggle Stream Inspector">
-        <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-        <span>Inspect</span>
-      </button>
-      <div class="status-badge" id="statusBadge">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusText">Ready</span>
-      </div>
-    </div>
-  </header>
-
-  <div class="chat-container" id="chat">
-    <div class="messages-inner" id="messagesInner">
-      <div class="empty-state" id="emptyState">
-        <div class="empty-icon">
+  <!-- Left Panel: Chat -->
+  <section class="left-panel">
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-mark">
           <svg viewBox="0 0 24 24"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg>
         </div>
-        <h2>DeepAgents Chat</h2>
-        <p>与 GLM-5.1 驱动的智能 Agent 对话，它可以规划任务、调用工具、自主完成复杂工作。</p>
-        <div class="hints">
-          <span class="hint-chip" onclick="sendHint(this)">现在是几点？</span>
-          <span class="hint-chip" onclick="sendHint(this)">算一下 256 x 13 + 99</span>
-          <span class="hint-chip" onclick="sendHint(this)">介绍一下你自己</span>
+        <div class="header-title">
+          <span class="logo-text">DeepAgents</span>
+          <span class="logo-sub">Powered by GLM-5.1</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="inspector-toggle" id="inspectorToggle" onclick="togglePanel()" title="Toggle Inspector">
+          <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <span>Inspect</span>
+        </button>
+        <div class="status-badge" id="statusBadge">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Ready</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="chat-container" id="chat">
+      <div class="messages-inner" id="messagesInner">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg>
+          </div>
+          <h2>DeepAgents Chat</h2>
+          <p>与 GLM-5.1 驱动的智能 Agent 对话，它可以规划任务、调用工具、自主完成复杂工作。</p>
+          <div class="hints">
+            <span class="hint-chip" onclick="sendHint(this)">现在是几点？</span>
+            <span class="hint-chip" onclick="sendHint(this)">算一下 256 x 13 + 99</span>
+            <span class="hint-chip" onclick="sendHint(this)">介绍一下你自己</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="input-area">
-    <div class="input-inner">
-      <form class="input-form" id="form" onsubmit="handleSubmit(event)">
-        <textarea id="input" rows="1" placeholder="Message DeepAgents..." autofocus onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message">
-          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
-      </form>
-      <div class="input-hint">Shift + Enter 换行</div>
-    </div>
-  </div>
-
-  <div class="inspector" id="inspector">
-    <div class="inspector-bar">
-      <div class="inspector-bar-left">
-        <span class="inspector-title">SSE Stream</span>
-        <span class="inspector-count" id="frameCount">0 frames</span>
-      </div>
-      <div class="inspector-bar-right">
-        <button class="inspector-btn" id="protocolBtn" onclick="toggleProtocol()" title="SSE 协议科普">Protocol</button>
-        <button class="inspector-btn" id="stepBtn" onclick="toggleStepThrough()" title="逐帧步进模式">Step</button>
-        <button class="inspector-clear inspector-btn" onclick="clearInspector()">Clear</button>
+    <div class="input-area">
+      <div class="input-inner">
+        <form class="input-form" id="form" onsubmit="handleSubmit(event)">
+          <textarea id="input" rows="1" placeholder="Message DeepAgents..." autofocus onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message">
+            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </form>
+        <div class="input-hint">Shift + Enter 换行</div>
       </div>
     </div>
+  </section>
 
-    <div class="stats-bar" id="statsBar">
+  <!-- Right Panel: Inspector -->
+  <aside class="right-panel" id="rightPanel">
+    <div class="panel-toolbar">
+      <div class="panel-toolbar-left">
+        <span class="panel-title">Inspector</span>
+        <span class="panel-count" id="frameCount">0 events</span>
+      </div>
+      <div class="panel-toolbar-right">
+        <button class="panel-btn" id="protocolBtn" onclick="toggleProtocol()">Protocol</button>
+        <button class="panel-btn" id="stepBtn" onclick="toggleStep()">Step</button>
+        <button class="panel-btn" onclick="clearPanel()">Clear</button>
+      </div>
+    </div>
+
+    <div class="panel-stats">
       <div class="stat-chip token"><span class="stat-label">token:</span> <span class="stat-value" id="statToken">0</span></div>
-      <div class="stat-chip tool_call"><span class="stat-label">tool_call:</span> <span class="stat-value" id="statToolCall">0</span></div>
-      <div class="stat-chip tool_result"><span class="stat-label">tool_result:</span> <span class="stat-value" id="statToolResult">0</span></div>
-      <div class="stat-chip error"><span class="stat-label">error:</span> <span class="stat-value" id="statError">0</span></div>
+      <div class="stat-chip tool_call"><span class="stat-label">tool:</span> <span class="stat-value" id="statToolCall">0</span></div>
+      <div class="stat-chip tool_result"><span class="stat-label">result:</span> <span class="stat-value" id="statToolResult">0</span></div>
+      <div class="stat-chip error"><span class="stat-label">err:</span> <span class="stat-value" id="statError">0</span></div>
       <span class="stat-duration" id="statDuration"></span>
     </div>
 
-    <div class="timeline-bar" id="timelineBar"></div>
+    <div class="panel-timeline" id="timeline"></div>
 
     <div class="step-controls" id="stepControls">
-      <button class="step-btn" id="stepPlayBtn" onclick="stepPlay()" title="继续播放">
+      <button class="step-btn" id="stepPlayBtn" onclick="stepPlay()">
         <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       </button>
-      <button class="step-btn" id="stepNextBtn" onclick="stepNext()" title="下一帧">
+      <button class="step-btn" id="stepNextBtn" onclick="stepNext()">
         <svg viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
         Next
       </button>
       <span class="step-progress" id="stepProgress">0 / 0</span>
+    </div>
+
+    <div class="panel-body" id="panelBody">
+      <div class="panel-empty" id="panelEmpty">
+        <div class="panel-empty-icon">
+          <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        </div>
+        <div class="panel-empty-title">Inspector</div>
+        <div class="panel-empty-desc">发送消息后，这里会显示发送给 Agent 的请求数据和实时 SSE 事件流</div>
+      </div>
+
+      <div class="request-card" id="requestCard" style="display:none">
+        <div class="request-header" onclick="toggleRequestBody()">
+          <span class="request-badge">POST</span>
+          <span class="request-endpoint">/api/chat</span>
+          <span class="request-toggle" id="requestToggle">&#9662;</span>
+        </div>
+        <div class="request-body" id="requestBody">
+          <pre class="request-json" id="requestJson"></pre>
+        </div>
+      </div>
+
+      <div id="eventLog"></div>
     </div>
 
     <div class="protocol-card" id="protocolCard">
@@ -979,25 +1088,19 @@ body {
         <span class="protocol-card-title">SSE Protocol Reference</span>
         <button class="protocol-card-close" onclick="toggleProtocol()">&times;</button>
       </div>
-      <div class="protocol-code"><span class="proto-comment">// 服务端以 HTTP 流返回，Content-Type: text/event-stream</span>
-<span class="proto-comment">// 每条消息格式:</span>
-<span class="proto-delim">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"token"</span>, <span class="proto-val">"content"</span>: <span class="proto-val">"你"</span> <span class="proto-key">}</span>
-
-<span class="proto-delim">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"tool_call"</span>, <span class="proto-val">"name"</span>: <span class="proto-val">"get_current_time"</span>, <span class="proto-val">"args"</span>: <span class="proto-val">"{}"</span> <span class="proto-key">}</span>
-
-<span class="proto-delim">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"tool_result"</span>, <span class="proto-val">"name"</span>: <span class="proto-val">"..."</span>, <span class="proto-val">"result"</span>: <span class="proto-val">"..."</span> <span class="proto-key">}</span>
-
-<span class="proto-delim">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"done"</span> <span class="proto-key">}</span>
-
-<span class="proto-comment">// 每个 data: 后面是 JSON，两个 \n 分隔帧</span></div>
-      <div class="protocol-live" id="protocolLive">
+      <div class="protocol-code"><span class="proto-comment">// Server returns HTTP stream, Content-Type: text/event-stream</span>
+<span class="proto-comment">// Each frame format:</span>
+<span class="proto-comment">//</span>
+<span class="proto-val">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"token"</span>, <span class="proto-val">"content"</span>: <span class="proto-val">"你"</span> <span class="proto-key">}</span>
+<span class="proto-val">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"tool_call"</span>, <span class="proto-val">"name"</span>: <span class="proto-val">"calculate"</span>, <span class="proto-val">"args"</span>: <span class="proto-val">"..."</span> <span class="proto-key">}</span>
+<span class="proto-val">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"tool_result"</span>, <span class="proto-val">"name"</span>: <span class="proto-val">"..."</span>, <span class="proto-val">"result"</span>: <span class="proto-val">"..."</span> <span class="proto-key">}</span>
+<span class="proto-val">data: </span><span class="proto-key">{</span> <span class="proto-val">"type"</span>: <span class="proto-val">"done"</span> <span class="proto-key">}</span></div>
+      <div class="protocol-live">
         <div class="protocol-live-label">Latest Frame</div>
-        <div class="protocol-live-frame" id="protocolLiveFrame">—</div>
+        <div class="protocol-live-frame" id="protocolLiveFrame">&mdash;</div>
       </div>
     </div>
-
-    <div class="inspector-log" id="inspectorLog"></div>
-  </div>
+  </aside>
 </div>
 
 <script>
@@ -1011,7 +1114,6 @@ const statusText = document.getElementById('statusText');
 let history = [];
 let isStreaming = false;
 
-/* ── Inspector State ── */
 let frameCount = 0;
 let stats = { token: 0, tool_call: 0, tool_result: 0, done: 0, error: 0 };
 let streamStartTime = null;
@@ -1019,77 +1121,60 @@ let allFrames = [];
 let stepMode = false;
 let stepBuffer = [];
 let stepIndex = 0;
-let stepPaused = false;
 let stepResolver = null;
 
-function toggleInspector() {
-  const panel = document.getElementById('inspector');
+/* ── Panel toggle (mobile) ── */
+function togglePanel() {
+  const panel = document.getElementById('rightPanel');
   const btn = document.getElementById('inspectorToggle');
   panel.classList.toggle('open');
   btn.classList.toggle('active');
-  document.getElementById('statsBar').classList.toggle('visible', panel.classList.contains('open'));
-  document.getElementById('timelineBar').classList.toggle('visible', panel.classList.contains('open'));
 }
 
-function clearInspector() {
-  const log = document.getElementById('inspectorLog');
-  log.innerHTML = '';
+/* ── Panel controls ── */
+function clearPanel() {
+  document.getElementById('eventLog').innerHTML = '';
+  document.getElementById('requestCard').style.display = 'none';
+  document.getElementById('panelEmpty').classList.remove('hidden');
   frameCount = 0;
   stats = { token: 0, tool_call: 0, tool_result: 0, done: 0, error: 0 };
   allFrames = [];
   streamStartTime = null;
-  document.getElementById('frameCount').textContent = '0 frames';
-  document.getElementById('timelineBar').innerHTML = '';
+  document.getElementById('frameCount').textContent = '0 events';
+  document.getElementById('timeline').innerHTML = '';
+  document.getElementById('timeline').classList.remove('visible');
   updateStats();
   document.getElementById('protocolLiveFrame').textContent = '—';
 }
 
 function toggleProtocol() {
-  const card = document.getElementById('protocolCard');
-  const btn = document.getElementById('protocolBtn');
-  card.classList.toggle('visible');
-  btn.classList.toggle('active');
+  document.getElementById('protocolCard').classList.toggle('visible');
+  document.getElementById('protocolBtn').classList.toggle('active');
 }
 
-function toggleStepThrough() {
+function toggleStep() {
   stepMode = !stepMode;
-  const btn = document.getElementById('stepBtn');
-  const controls = document.getElementById('stepControls');
-  btn.classList.toggle('active', stepMode);
-  controls.classList.toggle('visible', stepMode);
+  document.getElementById('stepBtn').classList.toggle('active', stepMode);
+  document.getElementById('stepControls').classList.toggle('visible', stepMode);
 }
 
-function stepPlay() {
-  if (stepResolver) {
-    stepResolver();
-    stepResolver = null;
-  }
-  stepPaused = false;
+function stepPlay() { if (stepResolver) { stepResolver(); stepResolver = null; } }
+function stepNext() { if (stepResolver) { stepResolver(); stepResolver = null; } }
+function waitForStep() { return new Promise(r => { stepResolver = r; }); }
+
+function toggleRequestBody() {
+  document.getElementById('requestBody').classList.toggle('collapsed');
+  document.getElementById('requestToggle').classList.toggle('collapsed');
 }
 
-function stepNext() {
-  if (stepResolver) {
-    stepResolver();
-    stepResolver = null;
-  }
-  stepPaused = true;
-}
-
-function waitForStep() {
-  return new Promise(resolve => {
-    stepResolver = resolve;
-  });
-}
-
+/* ── Stats ── */
 function updateStats() {
   document.getElementById('statToken').textContent = stats.token;
   document.getElementById('statToolCall').textContent = stats.tool_call;
   document.getElementById('statToolResult').textContent = stats.tool_result;
   document.getElementById('statError').textContent = stats.error;
-
   if (streamStartTime) {
-    const elapsed = ((Date.now() - streamStartTime) / 1000).toFixed(1);
-    document.getElementById('statDuration').textContent = elapsed + 's';
+    document.getElementById('statDuration').textContent = ((Date.now() - streamStartTime) / 1000).toFixed(1) + 's';
   }
 }
 
@@ -1097,74 +1182,78 @@ function updateStepProgress() {
   document.getElementById('stepProgress').textContent = stepIndex + ' / ' + stepBuffer.length;
 }
 
+/* ── Request display ── */
+function showRequest(message, hist) {
+  const payload = { message: message, history: hist };
+  document.getElementById('requestJson').innerHTML = highlightJson(JSON.stringify(payload, null, 2));
+  document.getElementById('requestCard').style.display = 'block';
+  document.getElementById('panelEmpty').classList.add('hidden');
+}
+
+function highlightJson(str) {
+  return str
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"([^"]+)"(\s*:)/g, '<span class="json-key">"$1"</span>$2')
+    .replace(/:\s*"([^"]*)"/g, ': <span class="json-string">"$1"</span>')
+    .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+    .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
+    .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+}
+
+/* ── Event logging ── */
 function addTimelineDot(data) {
-  const bar = document.getElementById('timelineBar');
+  const bar = document.getElementById('timeline');
+  bar.classList.add('visible');
   const dot = document.createElement('div');
   dot.className = 'timeline-dot ' + (data.type || 'done');
-
   let tip = '';
-  if (data.type === 'token') {
-    tip = JSON.stringify(data.content);
-  } else if (data.type === 'tool_call') {
-    tip = data.name + '(' + data.args + ')';
-  } else if (data.type === 'tool_result') {
-    tip = data.name + ' => ' + (data.result || '').slice(0, 60);
-  } else if (data.type === 'done') {
-    tip = 'stream end';
-  } else if (data.type === 'error') {
-    tip = data.message;
-  }
+  if (data.type === 'token') tip = JSON.stringify(data.content);
+  else if (data.type === 'tool_call') tip = data.name + '(' + data.args + ')';
+  else if (data.type === 'tool_result') tip = data.name + ' => ' + (data.result || '').slice(0, 60);
+  else if (data.type === 'done') tip = 'stream end';
+  else if (data.type === 'error') tip = data.message;
   dot.setAttribute('data-tooltip', tip);
   bar.appendChild(dot);
   bar.scrollLeft = bar.scrollWidth;
 }
 
-function logFrame(data, rawLine) {
-  const log = document.getElementById('inspectorLog');
+function logEvent(data) {
+  const log = document.getElementById('eventLog');
   frameCount++;
   stats[data.type] = (stats[data.type] || 0) + 1;
   allFrames.push(data);
-  document.getElementById('frameCount').textContent = frameCount + ' frame' + (frameCount !== 1 ? 's' : '');
+  document.getElementById('frameCount').textContent = frameCount + ' event' + (frameCount !== 1 ? 's' : '');
 
   const now = new Date();
   const ts = String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0') + '.' + String(now.getMilliseconds()).padStart(3, '0');
 
-  const type = data.type || 'unknown';
-
   let detail = '';
-  if (type === 'token') {
-    detail = 'content: ' + JSON.stringify(data.content);
-  } else if (type === 'tool_call') {
-    detail = 'name: ' + JSON.stringify(data.name) + '  args: ' + JSON.stringify(data.args);
-  } else if (type === 'tool_result') {
-    const short = (data.result || '').length > 120 ? (data.result).slice(0, 120) + '...' : (data.result || '');
-    detail = 'name: ' + JSON.stringify(data.name) + '  result: ' + JSON.stringify(short);
-  } else if (type === 'done') {
-    detail = 'stream complete';
-  } else if (type === 'error') {
-    detail = JSON.stringify(data.message);
-  }
+  if (data.type === 'token') detail = JSON.stringify(data.content);
+  else if (data.type === 'tool_call') detail = data.name + '(' + (typeof data.args === 'string' ? data.args : JSON.stringify(data.args)) + ')';
+  else if (data.type === 'tool_result') {
+    const short = (data.result || '').length > 120 ? data.result.slice(0, 120) + '...' : (data.result || '');
+    detail = data.name + ' => ' + short;
+  } else if (data.type === 'done') detail = 'stream complete';
+  else if (data.type === 'error') detail = data.message;
 
   const entry = document.createElement('div');
-  entry.className = 'log-entry';
-  entry.dataset.index = frameCount - 1;
+  entry.className = 'event-entry';
   entry.innerHTML =
-    '<span class="log-time">' + ts + '</span>' +
-    '<span class="log-type ' + type + '">' + type + '</span>' +
-    '<span class="log-data">' + escapeHtml(detail) + '</span>';
+    '<span class="event-time">' + ts + '</span>' +
+    '<span class="event-type ' + data.type + '">' + data.type + '</span>' +
+    '<span class="event-data">' + escapeHtml(detail) + '</span>';
   log.appendChild(entry);
-  log.scrollTop = log.scrollHeight;
+
+  const panelBody = document.getElementById('panelBody');
+  panelBody.scrollTop = panelBody.scrollHeight;
 
   addTimelineDot(data);
   updateStats();
-
-  document.getElementById('protocolLiveFrame').textContent = 'data: ' + JSON.stringify(data, null, 2);
+  document.getElementById('protocolLiveFrame').textContent = 'data: ' + JSON.stringify(data);
 }
 
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
-}
+/* ── Chat helpers ── */
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 140) + 'px'; }
 
 function handleKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -1173,19 +1262,9 @@ function handleKey(e) {
   }
 }
 
-function sendHint(el) {
-  inputEl.value = el.textContent;
-  document.getElementById('form').dispatchEvent(new Event('submit'));
-}
-
-function scrollBottom() {
-  chatEl.scrollTop = chatEl.scrollHeight;
-}
-
-function removeEmptyState() {
-  const el = document.getElementById('emptyState');
-  if (el) el.remove();
-}
+function sendHint(el) { inputEl.value = el.textContent; document.getElementById('form').dispatchEvent(new Event('submit')); }
+function scrollBottom() { chatEl.scrollTop = chatEl.scrollHeight; }
+function removeEmptyState() { const el = document.getElementById('emptyState'); if (el) el.remove(); }
 
 function escapeHtml(str) {
   const d = document.createElement('div');
@@ -1195,11 +1274,7 @@ function escapeHtml(str) {
 
 function setStatus(text, streaming) {
   statusText.textContent = text;
-  if (streaming) {
-    statusBadge.classList.add('streaming');
-  } else {
-    statusBadge.classList.remove('streaming');
-  }
+  statusBadge.classList.toggle('streaming', streaming);
 }
 
 function addUserMessage(text) {
@@ -1208,10 +1283,8 @@ function addUserMessage(text) {
   div.className = 'message user';
   div.innerHTML =
     '<div class="message-avatar">Y</div>' +
-    '<div class="message-content">' +
-      '<div class="message-role">You</div>' +
-      '<div class="message-body">' + escapeHtml(text) + '</div>' +
-    '</div>';
+    '<div class="message-content"><div class="message-role">You</div>' +
+    '<div class="message-body">' + escapeHtml(text) + '</div></div>';
   messagesInner.appendChild(div);
   scrollBottom();
 }
@@ -1222,10 +1295,8 @@ function createAssistantMessage() {
   div.className = 'message assistant';
   div.innerHTML =
     '<div class="message-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg></div>' +
-    '<div class="message-content">' +
-      '<div class="message-role">DeepAgents</div>' +
-      '<div class="message-body"></div>' +
-    '</div>';
+    '<div class="message-content"><div class="message-role">DeepAgents</div>' +
+    '<div class="message-body"></div></div>';
   messagesInner.appendChild(div);
   return div.querySelector('.message-body');
 }
@@ -1235,10 +1306,8 @@ function addToolCall(name, args) {
   div.className = 'tool-event';
   div.innerHTML =
     '<div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>' +
-    '<div>' +
-      '<div class="tool-name">' + escapeHtml(name) + '</div>' +
-      '<div class="tool-detail">' + escapeHtml(typeof args === 'string' ? args : JSON.stringify(args)) + '</div>' +
-    '</div>';
+    '<div><div class="tool-name">' + escapeHtml(name) + '</div>' +
+    '<div class="tool-detail">' + escapeHtml(typeof args === 'string' ? args : JSON.stringify(args)) + '</div></div>';
   messagesInner.appendChild(div);
   scrollBottom();
 }
@@ -1249,10 +1318,8 @@ function addToolResult(name, result) {
   const short = result.length > 200 ? result.slice(0, 200) + '...' : result;
   div.innerHTML =
     '<div class="tool-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +
-    '<div>' +
-      '<div class="tool-name">' + escapeHtml(name) + '</div>' +
-      '<div class="tool-detail">' + escapeHtml(short) + '</div>' +
-    '</div>';
+    '<div><div class="tool-name">' + escapeHtml(name) + '</div>' +
+    '<div class="tool-detail">' + escapeHtml(short) + '</div></div>';
   messagesInner.appendChild(div);
   scrollBottom();
 }
@@ -1263,21 +1330,15 @@ function addThinking() {
   div.id = 'thinking';
   div.innerHTML =
     '<div class="thinking-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg></div>' +
-    '<div class="thinking-content">' +
-      'Thinking' +
-      '<span class="thinking-dots"><span></span><span></span><span></span></span>' +
-    '</div>';
+    '<div class="thinking-content">Thinking<span class="thinking-dots"><span></span><span></span><span></span></span></div>';
   messagesInner.appendChild(div);
   scrollBottom();
 }
 
-function removeThinking() {
-  const el = document.getElementById('thinking');
-  if (el) el.remove();
-}
+function removeThinking() { const el = document.getElementById('thinking'); if (el) el.remove(); }
 
 function processFrame(data, bodyEl, fullContent) {
-  logFrame(data, null);
+  logEvent(data);
   if (data.type === 'token') {
     fullContent.ref += data.content;
     bodyEl.textContent = fullContent.ref;
@@ -1293,6 +1354,7 @@ function processFrame(data, bodyEl, fullContent) {
   return fullContent;
 }
 
+/* ── Main submit ── */
 async function handleSubmit(e) {
   e.preventDefault();
   if (isStreaming) return;
@@ -1306,7 +1368,9 @@ async function handleSubmit(e) {
   sendBtn.disabled = true;
   setStatus('Thinking', true);
 
+  clearPanel();
   streamStartTime = Date.now();
+  showRequest(text, history);
 
   addUserMessage(text);
   addThinking();
@@ -1330,56 +1394,36 @@ async function handleSubmit(e) {
     if (stepMode) {
       stepBuffer = [];
       stepIndex = 0;
-      stepPaused = false;
-
-      /* Read all frames first in step mode */
       const frames = [];
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-            frames.push(data);
-          } catch {}
+          try { frames.push(JSON.parse(line.slice(6))); } catch {}
         }
       }
-
       stepBuffer = frames;
       updateStepProgress();
-
       for (let i = 0; i < frames.length; i++) {
-        if (stepPaused) {
-          await waitForStep();
-        }
+        await waitForStep();
         stepIndex = i + 1;
         updateStepProgress();
         processFrame(frames[i], bodyEl, fullContent);
-        if (stepPaused && i < frames.length - 1) {
-          /* will wait on next iteration */
-        }
       }
     } else {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
-
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-            processFrame(data, bodyEl, fullContent);
-          } catch {}
+          try { processFrame(JSON.parse(line.slice(6)), bodyEl, fullContent); } catch {}
         }
       }
     }
