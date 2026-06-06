@@ -1001,9 +1001,70 @@ body {
 .md-body hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .md-body strong { font-weight: 600; }
 .md-body img { max-width: 100%; border-radius: 6px; }
+
+/* ── Auth overlay ── */
+.auth-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  width: 360px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+.auth-card .auth-logo {
+  font-size: 28px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+}
+.auth-card .auth-sub {
+  font-size: 14px; color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.auth-card input {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px; font-size: 15px;
+  outline: none; margin-bottom: 16px;
+  transition: border-color 0.2s;
+  font-family: var(--font-body);
+}
+.auth-card input:focus { border-color: var(--blue); }
+.auth-card .auth-btn {
+  width: 100%; padding: 10px;
+  background: var(--text); color: var(--bg);
+  border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.2s;
+  font-family: var(--font-display);
+}
+.auth-card .auth-btn:hover { opacity: 0.85; }
+.auth-card .auth-error {
+  color: #c0392b; font-size: 13px;
+  margin-top: 12px; display: none;
+}
+.auth-hidden { display: none !important; }
 </style>
 </head>
 <body>
+<div class="auth-overlay auth-hidden" id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">DeepAgents</div>
+    <div class="auth-sub">请输入访问密码</div>
+    <form id="authForm">
+      <input type="password" id="authInput" placeholder="密码" autocomplete="current-password">
+      <button type="submit" class="auth-btn">进入</button>
+    </form>
+    <div class="auth-error" id="authError">密码错误，请重试</div>
+  </div>
+</div>
 <div class="app">
   <!-- Left Panel: Chat -->
   <section class="left-panel">
@@ -1161,6 +1222,49 @@ const inputEl = document.getElementById('input');
 const sendBtn = document.getElementById('sendBtn');
 const statusBadge = document.getElementById('statusBadge');
 const statusText = document.getElementById('statusText');
+
+/* ── Auth ── */
+async function checkAuth() {
+  const overlay = document.getElementById('authOverlay');
+  if (!overlay) return;
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: '__auth_check__' }),
+    });
+    if (res.status === 401) {
+      overlay.classList.remove('auth-hidden');
+      document.querySelector('.app').classList.add('auth-hidden');
+    }
+  } catch { /* network error, skip auth */ }
+}
+
+document.getElementById('authForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pwd = document.getElementById('authInput').value;
+  const errEl = document.getElementById('authError');
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('authOverlay').classList.add('auth-hidden');
+      document.querySelector('.app').classList.remove('auth-hidden');
+      errEl.style.display = 'none';
+    } else {
+      errEl.style.display = 'block';
+      document.getElementById('authInput').value = '';
+    }
+  } catch {
+    errEl.style.display = 'block';
+  }
+});
+
+checkAuth();
 
 let history = [];
 let isStreaming = false;
