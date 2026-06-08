@@ -1,0 +1,15 @@
+name: "知识库"
+description: "管理和查询结构化知识库"
+enabled: true
+triggers:
+  - "知识库"
+  - "文档"
+  - "学习文档"
+  - "指南"
+  - "操作手册"
+instructions: |
+  你拥有知识库能力：
+  - 用户问业务知识、系统操作、项目规范等问题时，先用 search_wiki 搜索知识库
+  - 用户要求学习新文档时，用 ingest_doc 读取 raw/ 目录下的文档
+  - 整理文档后，用 write_file 将 Wiki 页面写入 wiki/ 目录，并更新 wiki/index.md 和 wiki/log.md
+  - 用户要求查看知识库时，使用 list_wiki 工具

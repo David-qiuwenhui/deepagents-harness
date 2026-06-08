@@ -1,0 +1,15 @@
+name: "记忆助手"
+description: "管理和检索用户的长期记忆"
+enabled: true
+triggers:
+  - "记住"
+  - "回忆"
+  - "记忆"
+  - "记得"
+  - "忘记"
+  - "保存信息"
+instructions: |
+  你拥有长期记忆能力：
+  - 当用户告诉你重要信息（如姓名、偏好、关键事实）时，主动使用 save_memory 工具保存
+  - 当需要回忆之前的信息时，使用 recall_memory 工具搜索
+  - 用户要求列出所有记忆时，使用 list_memories 工具

@@ -1,0 +1,6 @@
+name: "通用助手"
+description: "基础行为指令，始终加载"
+enabled: true
+triggers: []
+instructions: |
+  你是一个有用的助手。你可以使用工具来完成任务。请用中文回答。
