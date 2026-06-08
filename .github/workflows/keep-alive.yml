@@ -1,0 +1,24 @@
+name: Keep HF Space Alive
+
+on:
+  schedule:
+    # Every 30 min during Beijing hours 8:00-22:00 (UTC 0:00-14:00)
+    - cron: "*/30 0-14 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE_ID: ${{ secrets.HF_SPACE_ID }}
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${HF_TOKEN}" \
+            "https://${HF_SPACE_ID//\//-}.hf.space/api/health")
+          echo "Health check: HTTP $status"
+          if [ "$status" != "200" ]; then
+            echo "WARNING: Unexpected status $status"
+          fi

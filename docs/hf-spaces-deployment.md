@@ -90,7 +90,9 @@ agent = ["static/**/*"]
 
 ### 3. HF Space 配置
 
-- 创建 **Private** Docker Space
+- 创建 Docker Space（初始可选 Private，配置完成后需改为 **Public**）
+- **Visibility 设为 Public**：Private Space 外部访问会 404，但应用层已有密码保护，公开仅让登录页可见
+  - 路径：Space 页面 → Settings → Visibility → **Public** → Save
 - 在 Settings → Repository secrets 中添加：
   - `ZHIPUAI_API_KEY` — 智谱 API 密钥
   - `ACCESS_PASSWORD` — 访问密码
