@@ -20,7 +20,7 @@ uv run python main.py
 
 ## Environment
 
-Requires `.env` with `ZHIPUAI_API_KEY`. Copy from `.env.example`.
+Requires `.env` with `ZHIPUAI_API_KEY` and optionally `TAVILY_API_KEY`, `ACCESS_PASSWORD`. Copy from `.env.example`.
 
 ## Architecture
 
@@ -31,10 +31,12 @@ Requires `.env` with `ZHIPUAI_API_KEY`. Copy from `.env.example`.
 **Key files**:
 
 - `src/agent/config.py` — Model initialization (GLM-5.1 via ChatOpenAI)
-- `src/agent/tools.py` — `@tool` decorated functions registered with the agent. Add new tools here.
-- `src/agent/server.py` — FastAPI app: `GET /` serves the chat UI, `POST /api/chat` handles SSE streaming
+- `src/agent/tools.py` — Core tools: time, calculate, web_search, file I/O (read/write/list), all sandboxed to `workspace/`
+- `src/agent/memory_tools.py` — Long-term memory tools: save_memory, recall_memory, list_memories (backed by LangGraph InMemoryStore)
+- `src/agent/wiki_tools.py` — Knowledge base tools: ingest_doc, search_wiki, list_wiki (reads from `workspace/raw/`, writes to `workspace/wiki/`)
+- `src/agent/server.py` — FastAPI app: auth system, SSE streaming, health endpoint, static file serving
 - `src/agent/main.py` — CLI entry point for testing without the web UI
-- `src/agent/static/index.html` — Single-file chat UI (Claude-inspired styling, stream inspector with timeline/stats/step-through/protocol card)
+- `src/agent/static/index.html` — Single-file chat UI (Claude-inspired styling, breathing orb loading, stream inspector)
 
 **Data flow**:
 
@@ -58,3 +60,27 @@ Requires `.env` with `ZHIPUAI_API_KEY`. Copy from `.env.example`.
 - GLM-5.1 supports `reasoning_content` (chain-of-thought) but `langchain-openai` drops this field. To surface it, bypass LangChain or parse raw API responses.
 - The web UI is a single HTML file with all CSS/JS inline — no build step needed.
 - Each chat request creates a new agent instance. Conversation history is managed client-side and sent with each request.
+
+## Authentication
+
+Header-based token auth (no cookies — avoids third-party cookie blocking in iframes):
+
+1. `POST /api/auth` with `{password}` → returns `{token}` (stored in `localStorage`)
+2. Subsequent requests send `X-Auth-Token` header via `authFetch()`
+3. If `ACCESS_PASSWORD` env var is empty, auth is skipped entirely
+
+## Deployment
+
+Deployed to Hugging Face Spaces (Private Docker Space). Auto-deploy via GitHub Actions on push to `master`.
+
+- **Dockerfile** — Python 3.11-slim, `pip install .`, runs uvicorn on port 7860
+- **README.md** — HF Spaces YAML front-matter (sdk: docker, app_port: 7860)
+- **`.github/workflows/deploy.yml`** — Syncs master → HF Space on push
+
+Key deployment considerations:
+- `pyproject.toml` must include `[tool.setuptools.package-data]` for static files
+- SSE streaming needs `: ping\n\n` at stream start to flush proxy buffers
+- Auth uses header (X-Auth-Token) not cookies (HF Spaces loads in iframe)
+- Use `Depends()` for auth, not `BaseHTTPMiddleware` (breaks SSE streaming)
+
+Full deployment guide: `docs/hf-spaces-deployment.md`
