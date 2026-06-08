@@ -7,10 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css">
-<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js" integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js" integrity="sha384-jrsBdrv4eDpEYIq32u13DPbvB6tRmqIDnA6UlgFBoexpetaiWi7g/VbfMEL1WVen" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/github.min.css" integrity="sha384-RH2xi4eIQ/gjtbs9fUXM68sLSi99C7ZWBRX1vDrVv6GQXRibxXLbwO2NGZB74MbU" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js" integrity="sha384-eFTL69TLRZTkNfYZOLM+G04821K1qZao/4QLJbet1pP4tcF+fdXq/9CdqAbWRl/L" crossorigin="anonymous"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -27,6 +27,7 @@
   --accent: #d97757;
   --accent-light: rgba(217, 119, 87, 0.1);
   --accent-hover: #c5623f;
+  --accent-dark: #b5633d;
   --blue: #6a9bcc;
   --blue-light: rgba(106, 155, 204, 0.08);
   --green: #788c5d;
@@ -35,6 +36,9 @@
   --purple-light: rgba(139, 92, 246, 0.08);
   --teal: #0d9488;
   --teal-light: rgba(13, 148, 136, 0.08);
+  --error: #c0392b;
+  --success: #27ae60;
+  --code-bg: #1e1e2e;
   --radius: 16px;
   --radius-sm: 10px;
   --radius-xs: 6px;
@@ -249,6 +253,9 @@ body {
 .hints { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 4px; }
 
 .hint-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 500;
@@ -260,6 +267,10 @@ body {
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: var(--shadow-sm);
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  line-height: inherit;
 }
 
 .hint-chip:hover {
@@ -453,19 +464,19 @@ body {
   animation: orbPulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 .typing-indicator span:nth-child(1) {
-  background: #d97757;
+  background: var(--accent);
   box-shadow: 0 0 8px 2px rgba(217,119,87,0.4);
   animation-delay: 0s;
 }
 .typing-indicator span:nth-child(2) {
   width: 10px;
   height: 10px;
-  background: radial-gradient(circle at 35% 35%, #e89a7a, #d97757);
+  background: radial-gradient(circle at 35% 35%, var(--accent-hover), var(--accent));
   box-shadow: 0 0 12px 3px rgba(217,119,87,0.35);
   animation-delay: 0.15s;
 }
 .typing-indicator span:nth-child(3) {
-  background: #d97757;
+  background: var(--accent);
   box-shadow: 0 0 8px 2px rgba(217,119,87,0.4);
   animation-delay: 0.3s;
 }
@@ -644,7 +655,7 @@ body {
 .stat-chip.token .stat-value { color: var(--accent); }
 .stat-chip.tool_call .stat-value { color: var(--blue); }
 .stat-chip.tool_result .stat-value { color: var(--green); }
-.stat-chip.error .stat-value { color: #c0392b; }
+.stat-chip.error .stat-value { color: var(--error); }
 
 .stat-duration {
   font-family: var(--font-mono);
@@ -685,7 +696,7 @@ body {
 .timeline-dot.tool_call { background: var(--blue); }
 .timeline-dot.tool_result { background: var(--green); }
 .timeline-dot.done { background: var(--text-muted); }
-.timeline-dot.error { background: #c0392b; }
+.timeline-dot.error { background: var(--error); }
 
 .timeline-dot[data-tooltip]:hover::after {
   content: attr(data-tooltip);
@@ -868,7 +879,7 @@ body {
 .event-type.tool_call { color: var(--blue); background: var(--blue-light); }
 .event-type.tool_result { color: var(--green); background: var(--green-light); }
 .event-type.done { color: var(--text-muted); background: rgba(176, 174, 165, 0.1); }
-.event-type.error { color: #c0392b; background: rgba(192, 57, 43, 0.08); }
+.event-type.error { color: var(--error); background: rgba(192, 57, 43, 0.08); }
 
 .event-data {
   font-family: var(--font-mono);
@@ -1029,6 +1040,13 @@ body {
 
 ::selection { background: var(--accent-light); color: var(--accent-hover); }
 
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .message, .tool-event, .event-entry { animation: none; }
+  .thinking-dots span { animation: none; opacity: 0.5; }
+  .typing-indicator span { animation: none; opacity: 0.7; }
+}
+
 /* ── Markdown rendered content ── */
 .md-body { font-size: 15px; line-height: 1.7; color: var(--text); word-break: break-word; white-space: normal; }
 .md-body p { margin: 0 0 12px; }
@@ -1041,7 +1059,7 @@ body {
 .md-body li { margin: 4px 0; }
 .md-body blockquote { margin: 0 0 12px; padding: 8px 16px; border-left: 3px solid var(--border); color: #666; background: var(--bg-warm); border-radius: 0 6px 6px 0; }
 .md-body code { font-family: 'Fira Code', monospace; font-size: 0.88em; background: var(--bg-warm); padding: 2px 6px; border-radius: 4px; }
-.md-body pre { margin: 0 0 12px; background: #1e1e2e; border-radius: 8px; overflow-x: auto; }
+.md-body pre { margin: 0 0 12px; background: var(--code-bg); border-radius: 8px; overflow-x: auto; }
 .md-body pre code { display: block; padding: 14px 18px; background: none; color: #cdd6f4; font-size: 0.85em; line-height: 1.6; }
 .md-body table { margin: 0 0 12px; border-collapse: collapse; width: 100%; font-size: 0.92em; }
 .md-body th, .md-body td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
@@ -1100,8 +1118,8 @@ body {
   font-size: 13px;
   margin-top: 12px; display: none;
 }
-.auth-card .auth-msg.error { color: #c0392b; }
-.auth-card .auth-msg.success { color: #27ae60; }
+.auth-card .auth-msg.error { color: var(--error); }
+.auth-card .auth-msg.success { color: var(--success); }
 .auth-hidden { display: none !important; }
 </style>
 </head>
@@ -1131,7 +1149,7 @@ body {
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <button class="inspector-toggle" id="inspectorToggle" onclick="togglePanel()" title="Toggle Inspector">
+        <button class="inspector-toggle" id="inspectorToggle" onclick="togglePanel()" aria-expanded="false" aria-label="Toggle Inspector">
           <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
           <span>Inspect</span>
         </button>
@@ -1151,9 +1169,9 @@ body {
           <h2>DeepAgents Chat</h2>
           <p>与 GLM-5.1 驱动的智能 Agent 对话，它可以规划任务、调用工具、自主完成复杂工作。</p>
           <div class="hints">
-            <span class="hint-chip" onclick="sendHint(this)">现在是几点？</span>
-            <span class="hint-chip" onclick="sendHint(this)">算一下 256 x 13 + 99</span>
-            <span class="hint-chip" onclick="sendHint(this)">介绍一下你自己</span>
+            <button class="hint-chip" onclick="sendHint(this)">现在是几点？</button>
+            <button class="hint-chip" onclick="sendHint(this)">算一下 256 x 13 + 99</button>
+            <button class="hint-chip" onclick="sendHint(this)">介绍一下你自己</button>
           </div>
         </div>
       </div>
@@ -1162,7 +1180,7 @@ body {
     <div class="input-area">
       <div class="input-inner">
         <form class="input-form" id="form" onsubmit="handleSubmit(event)">
-          <textarea id="input" rows="1" placeholder="Message DeepAgents..." autofocus onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <textarea id="input" rows="1" placeholder="Message DeepAgents..." aria-label="Message input" autofocus onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message">
             <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
           </button>
@@ -1253,12 +1271,6 @@ body {
 <script>
 /* ── Markdown rendering config ── */
 marked.setOptions({
-  highlight: function(code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      try { return hljs.highlight(code, { language: lang }).value; } catch(e) {}
-    }
-    return hljs.highlightAuto(code).value;
-  },
   breaks: true,
   gfm: true
 });
@@ -1266,6 +1278,13 @@ marked.setOptions({
 function renderMarkdown(text) {
   const html = marked.parse(text);
   return DOMPurify.sanitize(html);
+}
+
+/* ── Highlight code blocks after render ── */
+function highlightCodeBlocks(container) {
+  container.querySelectorAll('pre code').forEach(block => {
+    hljs.highlightElement(block);
+  });
 }
 
 const chatEl = document.getElementById('chat');
@@ -1343,24 +1362,44 @@ document.getElementById('authForm')?.addEventListener('submit', async (e) => {
 
 checkAuth();
 
-let history = [];
-let isStreaming = false;
+/* ── State ── */
+const state = {
+  history: [],
+  isStreaming: false,
+  abortController: null,
+  inspector: {
+    frameCount: 0,
+    stats: { token: 0, tool_call: 0, tool_result: 0, done: 0, error: 0 },
+    streamStartTime: null,
+    allFrames: [],
+  },
+  step: {
+    mode: false,
+    buffer: [],
+    index: 0,
+    resolver: null,
+  },
+};
 
-let frameCount = 0;
-let stats = { token: 0, tool_call: 0, tool_result: 0, done: 0, error: 0 };
-let streamStartTime = null;
-let allFrames = [];
-let stepMode = false;
-let stepBuffer = [];
-let stepIndex = 0;
-let stepResolver = null;
+const MAX_HISTORY_TURNS = 20;
+
+/* ── Tool categories ── */
+const MEMORY_TOOLS = ['save_memory', 'recall_memory', 'list_memories'];
+const WIKI_TOOLS = ['ingest_doc', 'search_wiki', 'list_wiki'];
+
+function getToolCategory(name) {
+  if (MEMORY_TOOLS.includes(name)) return 'memory';
+  if (WIKI_TOOLS.includes(name)) return 'wiki';
+  return '';
+}
 
 /* ── Panel toggle (mobile) ── */
 function togglePanel() {
   const panel = document.getElementById('rightPanel');
   const btn = document.getElementById('inspectorToggle');
-  panel.classList.toggle('open');
-  btn.classList.toggle('active');
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('active', isOpen);
+  btn.setAttribute('aria-expanded', isOpen);
 }
 
 /* ── Panel controls ── */
@@ -1368,10 +1407,10 @@ function clearPanel() {
   document.getElementById('eventLog').innerHTML = '';
   document.getElementById('requestCard').style.display = 'none';
   document.getElementById('panelEmpty').classList.remove('hidden');
-  frameCount = 0;
-  stats = { token: 0, tool_call: 0, tool_result: 0, done: 0, error: 0 };
-  allFrames = [];
-  streamStartTime = null;
+  state.inspector.frameCount = 0;
+  state.inspector.stats = { token: 0, tool_call: 0, tool_result: 0, done: 0, error: 0 };
+  state.inspector.allFrames = [];
+  state.inspector.streamStartTime = null;
   document.getElementById('frameCount').textContent = '0 events';
   document.getElementById('timeline').innerHTML = '';
   document.getElementById('timeline').classList.remove('visible');
@@ -1385,14 +1424,14 @@ function toggleProtocol() {
 }
 
 function toggleStep() {
-  stepMode = !stepMode;
-  document.getElementById('stepBtn').classList.toggle('active', stepMode);
-  document.getElementById('stepControls').classList.toggle('visible', stepMode);
+  state.step.mode = !state.step.mode;
+  document.getElementById('stepBtn').classList.toggle('active', state.step.mode);
+  document.getElementById('stepControls').classList.toggle('visible', state.step.mode);
 }
 
-function stepPlay() { if (stepResolver) { stepResolver(); stepResolver = null; } }
-function stepNext() { if (stepResolver) { stepResolver(); stepResolver = null; } }
-function waitForStep() { return new Promise(r => { stepResolver = r; }); }
+function stepPlay() { if (state.step.resolver) { state.step.resolver(); state.step.resolver = null; } }
+function stepNext() { if (state.step.resolver) { state.step.resolver(); state.step.resolver = null; } }
+function waitForStep() { return new Promise(r => { state.step.resolver = r; }); }
 
 function toggleRequestBody() {
   document.getElementById('requestBody').classList.toggle('collapsed');
@@ -1401,17 +1440,18 @@ function toggleRequestBody() {
 
 /* ── Stats ── */
 function updateStats() {
-  document.getElementById('statToken').textContent = stats.token;
-  document.getElementById('statToolCall').textContent = stats.tool_call;
-  document.getElementById('statToolResult').textContent = stats.tool_result;
-  document.getElementById('statError').textContent = stats.error;
-  if (streamStartTime) {
-    document.getElementById('statDuration').textContent = ((Date.now() - streamStartTime) / 1000).toFixed(1) + 's';
+  const s = state.inspector.stats;
+  document.getElementById('statToken').textContent = s.token;
+  document.getElementById('statToolCall').textContent = s.tool_call;
+  document.getElementById('statToolResult').textContent = s.tool_result;
+  document.getElementById('statError').textContent = s.error;
+  if (state.inspector.streamStartTime) {
+    document.getElementById('statDuration').textContent = ((Date.now() - state.inspector.streamStartTime) / 1000).toFixed(1) + 's';
   }
 }
 
 function updateStepProgress() {
-  document.getElementById('stepProgress').textContent = stepIndex + ' / ' + stepBuffer.length;
+  document.getElementById('stepProgress').textContent = state.step.index + ' / ' + state.step.buffer.length;
 }
 
 /* ── Request display ── */
@@ -1424,9 +1464,9 @@ function showRequest(message, hist) {
 
 function highlightJson(str) {
   return str
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"([^"]+)"(\s*:)/g, '<span class="json-key">"$1"</span>$2')
-    .replace(/:\s*"([^"]*)"/g, ': <span class="json-string">"$1"</span>')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+    .replace(/&quot;([^&]+?)&quot;(\s*:)/g, '<span class="json-key">"$1"</span>$2')
+    .replace(/:\s*&quot;([^&]*?)&quot;/g, ': <span class="json-string">"$1"</span>')
     .replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
     .replace(/:\s*(true|false)/g, ': <span class="json-bool">$1</span>')
     .replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
@@ -1451,10 +1491,10 @@ function addTimelineDot(data) {
 
 function logEvent(data) {
   const log = document.getElementById('eventLog');
-  frameCount++;
-  stats[data.type] = (stats[data.type] || 0) + 1;
-  allFrames.push(data);
-  document.getElementById('frameCount').textContent = frameCount + ' event' + (frameCount !== 1 ? 's' : '');
+  state.inspector.frameCount++;
+  state.inspector.stats[data.type] = (state.inspector.stats[data.type] || 0) + 1;
+  state.inspector.allFrames.push(data);
+  document.getElementById('frameCount').textContent = state.inspector.frameCount + ' event' + (state.inspector.frameCount !== 1 ? 's' : '');
 
   const now = new Date();
   const ts = String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0') + '.' + String(now.getMilliseconds()).padStart(3, '0');
@@ -1490,18 +1530,16 @@ function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(e
 function handleKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    document.getElementById('form').dispatchEvent(new Event('submit'));
+    handleSubmit(e);
   }
 }
 
-function sendHint(el) { inputEl.value = el.textContent; document.getElementById('form').dispatchEvent(new Event('submit')); }
+function sendHint(el) { inputEl.value = el.textContent; handleSubmit(new Event('submit')); }
 function scrollBottom() { chatEl.scrollTop = chatEl.scrollHeight; }
 function removeEmptyState() { const el = document.getElementById('emptyState'); if (el) el.remove(); }
 
 function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function setStatus(text, streaming) {
@@ -1533,14 +1571,10 @@ function createAssistantMessage() {
   return div.querySelector('.message-body');
 }
 
-const MEMORY_TOOLS = ['save_memory', 'recall_memory', 'list_memories'];
-const WIKI_TOOLS = ['ingest_doc', 'search_wiki', 'list_wiki'];
-
 function addToolCall(name, args) {
   const div = document.createElement('div');
-  const isMemory = MEMORY_TOOLS.includes(name);
-  const isWiki = WIKI_TOOLS.includes(name);
-  div.className = 'tool-event' + (isMemory ? ' memory' : '') + (isWiki ? ' wiki' : '');
+  const cat = getToolCategory(name);
+  div.className = 'tool-event' + (cat ? ' ' + cat : '');
   div.innerHTML =
     '<div class="tool-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>' +
     '<div><div class="tool-name">' + escapeHtml(name) + '</div>' +
@@ -1551,9 +1585,8 @@ function addToolCall(name, args) {
 
 function addToolResult(name, result) {
   const div = document.createElement('div');
-  const isMemory = MEMORY_TOOLS.includes(name);
-  const isWiki = WIKI_TOOLS.includes(name);
-  div.className = 'tool-event result' + (isMemory ? ' memory' : '') + (isWiki ? ' wiki' : '');
+  const cat = getToolCategory(name);
+  div.className = 'tool-event result' + (cat ? ' ' + cat : '');
   const short = result.length > 200 ? result.slice(0, 200) + '...' : result;
   div.innerHTML =
     '<div class="tool-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>' +
@@ -1576,6 +1609,9 @@ function addThinking() {
 
 function removeThinking() { const el = document.getElementById('thinking'); if (el) el.remove(); }
 
+let _renderTimer = null;
+const RENDER_DEBOUNCE_MS = 80;
+
 function processFrame(data, bodyEl, fullContent) {
   logEvent(data);
   if (data.type === 'token') {
@@ -1585,14 +1621,14 @@ function processFrame(data, bodyEl, fullContent) {
       fullContent._started = true;
     }
     fullContent.ref += data.content;
-    if (!fullContent._raf) {
-      fullContent._raf = requestAnimationFrame(() => {
-        bodyEl.innerHTML = renderMarkdown(fullContent.ref);
-        bodyEl.classList.add('md-body');
-        fullContent._raf = null;
-        scrollBottom();
-      });
-    }
+    if (_renderTimer) clearTimeout(_renderTimer);
+    _renderTimer = setTimeout(() => {
+      bodyEl.innerHTML = renderMarkdown(fullContent.ref);
+      bodyEl.classList.add('md-body');
+      highlightCodeBlocks(bodyEl);
+      _renderTimer = null;
+      scrollBottom();
+    }, RENDER_DEBOUNCE_MS);
   } else if (data.type === 'tool_call') {
     addToolCall(data.name, data.args);
   } else if (data.type === 'tool_result') {
@@ -1607,21 +1643,24 @@ function processFrame(data, bodyEl, fullContent) {
 
 /* ── Main submit ── */
 async function handleSubmit(e) {
-  e.preventDefault();
-  if (isStreaming) return;
+  if (e) e.preventDefault();
+  if (state.isStreaming) return;
 
   const text = inputEl.value.trim();
   if (!text) return;
 
   inputEl.value = '';
   inputEl.style.height = 'auto';
-  isStreaming = true;
+  state.isStreaming = true;
   sendBtn.disabled = true;
   setStatus('Thinking', true);
 
+  if (state.abortController) state.abortController.abort();
+  state.abortController = new AbortController();
+
   clearPanel();
-  streamStartTime = Date.now();
-  showRequest(text, history);
+  state.inspector.streamStartTime = Date.now();
+  showRequest(text, state.history);
 
   addUserMessage(text);
   addThinking();
@@ -1632,7 +1671,8 @@ async function handleSubmit(e) {
     const res = await authFetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history }),
+      body: JSON.stringify({ message: text, history: state.history }),
+      signal: state.abortController.signal,
     });
 
     if (!res.ok) {
@@ -1646,7 +1686,7 @@ async function handleSubmit(e) {
         bodyEl.innerHTML = renderMarkdown('[服务器错误] HTTP ' + res.status + ' — 请检查 ZHIPUAI_API_KEY 是否已配置');
         bodyEl.classList.add('md-body');
       }
-      isStreaming = false;
+      state.isStreaming = false;
       sendBtn.disabled = false;
       setStatus('Ready', false);
       return;
@@ -1659,9 +1699,9 @@ async function handleSubmit(e) {
     removeThinking();
     setStatus('Streaming', true);
 
-    if (stepMode) {
-      stepBuffer = [];
-      stepIndex = 0;
+    if (state.step.mode) {
+      state.step.buffer = [];
+      state.step.index = 0;
       const frames = [];
       while (true) {
         const { done, value } = await reader.read();
@@ -1671,14 +1711,14 @@ async function handleSubmit(e) {
         buffer = lines.pop() || '';
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
-          try { frames.push(JSON.parse(line.slice(6))); } catch {}
+          try { frames.push(JSON.parse(line.slice(6))); } catch (e) { console.warn('SSE parse error:', e); }
         }
       }
-      stepBuffer = frames;
+      state.step.buffer = frames;
       updateStepProgress();
       for (let i = 0; i < frames.length; i++) {
         await waitForStep();
-        stepIndex = i + 1;
+        state.step.index = i + 1;
         updateStepProgress();
         processFrame(frames[i], bodyEl, fullContent);
       }
@@ -1691,31 +1731,38 @@ async function handleSubmit(e) {
         buffer = lines.pop() || '';
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
-          try { processFrame(JSON.parse(line.slice(6)), bodyEl, fullContent); } catch {}
+          try { processFrame(JSON.parse(line.slice(6)), bodyEl, fullContent); } catch (e) { console.warn('SSE parse error:', e); }
         }
       }
     }
   } catch (err) {
+    if (err.name === 'AbortError') return;
     removeThinking();
     bodyEl.innerHTML = renderMarkdown('[Connection Error] ' + err.message);
     bodyEl.classList.add('md-body');
   }
 
   // Final render to ensure last tokens are parsed
+  if (_renderTimer) { clearTimeout(_renderTimer); _renderTimer = null; }
   if (!fullContent.ref) {
     bodyEl.innerHTML = renderMarkdown('模型未返回任何内容。可能原因：\n\n1. **ZHIPUAI_API_KEY 未配置** — 请在 HF Spaces 的 Settings → Repository secrets 中添加\n2. **网络超时** — 模型 API 响应超时\n3. **SSE 流被代理缓冲** — HF Spaces 反向代理未正确转发流式数据');
     bodyEl.classList.add('md-body');
   } else {
     bodyEl.innerHTML = renderMarkdown(fullContent.ref);
     bodyEl.classList.add('md-body');
+    highlightCodeBlocks(bodyEl);
   }
 
   if (fullContent.ref) {
-    history.push({ role: 'user', content: text });
-    history.push({ role: 'assistant', content: fullContent.ref });
+    state.history.push({ role: 'user', content: text });
+    state.history.push({ role: 'assistant', content: fullContent.ref });
+    if (state.history.length > MAX_HISTORY_TURNS * 2) {
+      state.history = state.history.slice(-MAX_HISTORY_TURNS * 2);
+    }
   }
 
-  isStreaming = false;
+  state.isStreaming = false;
+  state.abortController = null;
   sendBtn.disabled = false;
   setStatus('Ready', false);
   scrollBottom();

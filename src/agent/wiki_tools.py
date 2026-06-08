@@ -2,6 +2,8 @@ from langchain_core.tools import tool
 
 from agent.tools import _resolve_safe_path
 
+ALLOWED_EXTENSIONS = frozenset({".md", ".txt", ".csv", ".json"})
+
 
 @tool
 def ingest_doc(filepath: str) -> str:
@@ -15,6 +17,8 @@ def ingest_doc(filepath: str) -> str:
             return f"文件不存在: raw/{filepath}"
         if not target.is_file():
             return f"不是文件: raw/{filepath}"
+        if target.suffix.lower() not in ALLOWED_EXTENSIONS:
+            return f"不支持的文件类型: {target.suffix}，允许的类型: {', '.join(sorted(ALLOWED_EXTENSIONS))}"
         content = target.read_text(encoding="utf-8")
         return f"文档内容如下，请整理为 Wiki 页面：\n\n{content}"
     except ValueError as e:

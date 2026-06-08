@@ -1,3 +1,5 @@
+import ast
+import operator
 import os
 from datetime import datetime
 from pathlib import Path
@@ -12,7 +14,7 @@ WORK_DIR = Path(os.environ.get("AGENT_WORK_DIR", Path(__file__).parent.parent.pa
 def _resolve_safe_path(filepath: str) -> Path:
     """解析路径并确保在 WORK_DIR 内，防止路径遍历攻击"""
     target = (WORK_DIR / filepath).resolve()
-    if not str(target).startswith(str(WORK_DIR.resolve())):
+    if not target.is_relative_to(WORK_DIR.resolve()):
         raise ValueError(f"路径超出允许范围: {filepath}")
     return target
 
@@ -23,29 +25,73 @@ def get_current_time() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+_SAFE_OPS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Mod: operator.mod,
+    ast.USub: operator.neg,
+}
+
+
+def _safe_eval(expression: str) -> float:
+    tree = ast.parse(expression, mode="eval")
+
+    def _eval(node):
+        if isinstance(node, ast.Expression):
+            return _eval(node.body)
+        if isinstance(node, ast.Constant):
+            if isinstance(node.value, (int, float)):
+                return node.value
+            raise ValueError(f"不支持的常量类型: {type(node.value).__name__}")
+        if isinstance(node, ast.BinOp):
+            op_type = type(node.op)
+            if op_type not in _SAFE_OPS:
+                raise ValueError(f"不支持的运算符: {op_type.__name__}")
+            return _SAFE_OPS[op_type](_eval(node.left), _eval(node.right))
+        if isinstance(node, ast.UnaryOp):
+            op_type = type(node.op)
+            if op_type not in _SAFE_OPS:
+                raise ValueError(f"不支持的一元运算符: {op_type.__name__}")
+            return _SAFE_OPS[op_type](_eval(node.operand))
+        raise ValueError(f"不支持的表达式节点: {type(node).__name__}")
+
+    return _eval(tree)
+
+
 @tool
 def calculate(expression: str) -> str:
     """计算数学表达式并返回结果。例如: '2 + 3 * 4'"""
-    allowed = set("0123456789+-*/().% ")
-    if not all(c in allowed for c in expression):
-        return "错误：表达式包含不允许的字符"
     try:
-        result = eval(expression)  # noqa: S307
+        result = _safe_eval(expression)
         return f"{expression} = {result}"
-    except Exception as e:
+    except (ValueError, SyntaxError, ZeroDivisionError, OverflowError) as e:
         return f"计算错误: {e}"
+
+
+_tavily_client: TavilyClient | None = None
+
+
+def _get_tavily_client() -> TavilyClient | None:
+    global _tavily_client
+    api_key = os.environ.get("TAVILY_API_KEY")
+    if not api_key:
+        return None
+    if _tavily_client is None:
+        _tavily_client = TavilyClient(api_key=api_key)
+    return _tavily_client
 
 
 @tool
 def web_search(query: str) -> str:
     """搜索互联网获取最新信息。适用于需要实时资讯、事实查询、新闻动态的场景。
     query: 搜索关键词，支持中英文"""
-    api_key = os.environ.get("TAVILY_API_KEY")
-    if not api_key:
+    client = _get_tavily_client()
+    if not client:
         return "错误：未配置 TAVILY_API_KEY，无法使用搜索功能"
 
     try:
-        client = TavilyClient(api_key=api_key)
         results = client.search(query, max_results=5, topic="general")
         entries = []
         for r in results.get("results", []):
@@ -101,7 +147,7 @@ def list_directory(dirpath: str = ".") -> str:
         items = sorted(target.iterdir())
         lines = []
         for item in items:
-            prefix = "📁 " if item.is_dir() else "📄 "
+            prefix = "[DIR]  " if item.is_dir() else "[FILE] "
             lines.append(f"{prefix}{item.name}")
         return "\n".join(lines) if lines else "目录为空"
     except ValueError as e:

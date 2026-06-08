@@ -1,7 +1,9 @@
 import json
+import logging
 import os
 import secrets
 from collections.abc import AsyncGenerator
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from deepagents import create_deep_agent
@@ -10,24 +12,37 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from starlette.responses import JSONResponse
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_openai import ChatOpenAI
 from langgraph.store.memory import InMemoryStore
 
+from agent.config import get_model
 from agent.memory_tools import list_memories, recall_memory, save_memory
 from agent.tools import calculate, get_current_time, list_directory, read_file, web_search, write_file
 from agent.wiki_tools import ingest_doc, list_wiki, search_wiki
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="DeepAgents Chat")
 
 ACCESS_PASSWORD = os.environ.get("ACCESS_PASSWORD", "")
-ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY", "")
 
+ZHIPUAI_API_KEY = os.environ.get("ZHIPUAI_API_KEY", "")
 if not ZHIPUAI_API_KEY:
-    print("WARNING: ZHIPUAI_API_KEY is not set. Chat will not work.")
+    logger.warning("ZHIPUAI_API_KEY is not set. Chat will not work.")
 else:
-    print(f"ZHIPUAI_API_KEY configured ({len(ZHIPUAI_API_KEY)} chars)")
+    logger.info("ZHIPUAI_API_KEY configured")
+
+SESSION_TTL = timedelta(hours=24)
+_auth_sessions: dict[str, datetime] = {}
+MAX_HISTORY_TURNS = 40
+
+
+def _cleanup_expired_sessions():
+    now = datetime.now(timezone.utc)
+    expired = [t for t, ts in _auth_sessions.items() if now - ts > SESSION_TTL]
+    for t in expired:
+        _auth_sessions.pop(t, None)
 
 
 @app.get("/api/health")
@@ -39,14 +54,8 @@ async def health():
     }
 
 
-_auth_sessions: set[str] = set()
-
-
 def _get_auth_token(request: Request) -> str | None:
     token = request.headers.get("x-auth-token")
-    if token and token in _auth_sessions:
-        return token
-    token = request.cookies.get("auth_token")
     if token and token in _auth_sessions:
         return token
     return None
@@ -55,8 +64,8 @@ def _get_auth_token(request: Request) -> str | None:
 def _check_auth(request: Request) -> None:
     if not ACCESS_PASSWORD:
         return
+    _cleanup_expired_sessions()
     if not _get_auth_token(request):
-        print(f"Auth failed. Sessions: {len(_auth_sessions)}, headers: {list(request.headers.keys())}")
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
@@ -67,7 +76,7 @@ async def authenticate(request: Request):
     if password != ACCESS_PASSWORD:
         return JSONResponse({"success": False, "message": "密码错误"}, status_code=401)
     token = secrets.token_hex(32)
-    _auth_sessions.add(token)
+    _auth_sessions[token] = datetime.now(timezone.utc)
     return JSONResponse({"success": True, "token": token})
 
 
@@ -75,11 +84,11 @@ async def authenticate(request: Request):
 async def auth_check(request: Request):
     if not ACCESS_PASSWORD:
         return {"authenticated": True}
+    _cleanup_expired_sessions()
     if _get_auth_token(request):
         return {"authenticated": True}
     raise HTTPException(status_code=401, detail="Not authenticated")
 
-ZHIPU_BASE_URL = "https://open.bigmodel.cn/api/coding/paas/v4/"
 SYSTEM_PROMPT = (
     "你是一个有用的助手。你可以使用工具来完成任务。请用中文回答。\n\n"
     "你拥有长期记忆能力：\n"
@@ -101,27 +110,33 @@ TOOLS = [
 ]
 
 
-def _get_model() -> ChatOpenAI:
-    if not ZHIPUAI_API_KEY:
-        raise RuntimeError("ZHIPUAI_API_KEY is not configured")
-    return ChatOpenAI(
-        model="glm-5.1",
-        base_url=ZHIPU_BASE_URL,
-        api_key=ZHIPUAI_API_KEY,
-    )
-
-
 @app.get("/", response_class=HTMLResponse)
 async def index():
     html_path = Path(__file__).parent / "static" / "index.html"
     return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
 
 
+def _validate_history(history: list) -> list:
+    if not isinstance(history, list):
+        return []
+    if len(history) > MAX_HISTORY_TURNS:
+        history = history[-MAX_HISTORY_TURNS:]
+    validated = []
+    for msg in history:
+        if not isinstance(msg, dict):
+            continue
+        role = msg.get("role")
+        content = msg.get("content", "")
+        if role in ("user", "assistant") and isinstance(content, str):
+            validated.append({"role": role, "content": content})
+    return validated
+
+
 @app.post("/api/chat", dependencies=[Depends(_check_auth)])
 async def chat(request: Request) -> StreamingResponse:
     body = await request.json()
     user_message = body.get("message", "")
-    history = body.get("history", [])
+    history = _validate_history(body.get("history", []))
 
     if not user_message:
         return StreamingResponse(
@@ -137,15 +152,15 @@ async def chat(request: Request) -> StreamingResponse:
             messages.append(AIMessage(content=msg["content"]))
     messages.append(HumanMessage(content=user_message))
 
+    model = get_model()
     agent = create_deep_agent(
-        model=_get_model(),
+        model=model,
         tools=TOOLS,
         system_prompt=SYSTEM_PROMPT,
         store=MEMORY_STORE,
     )
 
     async def generate() -> AsyncGenerator[str, None]:
-        # Send SSE ping to flush proxy buffers immediately
         yield ": ping\n\n"
         try:
             async for event in agent.astream_events(
@@ -168,8 +183,8 @@ async def chat(request: Request) -> StreamingResponse:
 
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
         except Exception as e:
-            print(f"ERROR in chat generate: {type(e).__name__}: {e}")
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+            logger.error("Error in chat generate: %s: %s", type(e).__name__, e)
+            yield f"data: {json.dumps({'type': 'error', 'message': '服务器内部错误，请稍后重试'}, ensure_ascii=False)}\n\n"
 
     return StreamingResponse(
         generate(),
