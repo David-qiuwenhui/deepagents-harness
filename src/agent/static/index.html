@@ -226,6 +226,24 @@ body {
 .inspector-toggle.active { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
 .inspector-toggle svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
 
+.clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.clear-btn:hover { border-color: var(--error); color: var(--error); }
+.clear-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
 /* ── Chat Area ── */
 .chat-container {
   flex: 1;
@@ -593,6 +611,9 @@ body {
 .send-btn:active { transform: translateY(0); }
 .send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .send-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+.send-btn.stop-btn { background: var(--error); }
+.send-btn.stop-btn:hover { background: #a93226; transform: translateY(-1px); }
 
 .input-hint {
   text-align: center;
@@ -1198,6 +1219,10 @@ body {
           <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
           <span>Inspect</span>
         </button>
+        <button class="clear-btn" id="clearBtn" style="display:none" onclick="clearHistory()" aria-label="Clear conversation">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          <span>Clear Cache</span>
+        </button>
         <div class="status-badge" id="statusBadge">
           <span class="status-dot" id="statusDot"></span>
           <span id="statusText">Ready</span>
@@ -1215,8 +1240,9 @@ body {
           <p>与 GLM-5.1 驱动的智能 Agent 对话，它可以规划任务、调用工具、自主完成复杂工作。</p>
           <div class="hints">
             <button class="hint-chip" onclick="sendHint(this)">现在是几点？</button>
-            <button class="hint-chip" onclick="sendHint(this)">算一下 256 x 13 + 99</button>
-            <button class="hint-chip" onclick="sendHint(this)">介绍一下你自己</button>
+            <button class="hint-chip" onclick="sendHint(this)">帮我记住我喜欢编程</button>
+            <button class="hint-chip" onclick="sendHint(this)">搜一下最新的 AI 新闻</button>
+            <button class="hint-chip" onclick="sendHint(this)">知识库里有什么？</button>
           </div>
         </div>
       </div>
@@ -1228,6 +1254,9 @@ body {
           <textarea id="input" rows="1" placeholder="Message DeepAgents..." aria-label="Message input" autofocus onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message">
             <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+          <button type="button" class="send-btn stop-btn" id="stopBtn" style="display:none" aria-label="Stop generation" onclick="stopGeneration()">
+            <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
           </button>
         </form>
         <div class="input-hint">Shift + Enter 换行</div>
@@ -1427,6 +1456,66 @@ const state = {
 };
 
 const MAX_HISTORY_TURNS = 20;
+const HISTORY_KEY = 'deepagents_history';
+
+function saveHistory() {
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history)); } catch (e) { /* quota exceeded */ }
+  updateClearBtn();
+}
+
+function loadHistory() {
+  try {
+    const saved = localStorage.getItem(HISTORY_KEY);
+    if (saved) {
+      state.history = JSON.parse(saved);
+      renderHistory();
+    }
+  } catch (e) { /* parse error */ }
+  updateClearBtn();
+}
+
+function renderHistory() {
+  if (!state.history.length) return;
+  for (const msg of state.history) {
+    if (msg.role === 'user') {
+      addUserMessage(msg.content);
+    } else if (msg.role === 'assistant') {
+      const bodyEl = createAssistantMessage();
+      bodyEl.innerHTML = renderMarkdown(msg.content);
+      bodyEl.classList.add('md-body');
+      highlightCodeBlocks(bodyEl);
+    }
+  }
+  scrollBottom();
+}
+
+function stopGeneration() {
+  if (state.abortController) state.abortController.abort();
+}
+
+function updateClearBtn() {
+  document.getElementById('clearBtn').style.display = state.history.length > 0 ? 'flex' : 'none';
+}
+
+function clearHistory() {
+  state.history = [];
+  localStorage.removeItem(HISTORY_KEY);
+  messagesInner.innerHTML = '';
+  const empty = document.createElement('div');
+  empty.className = 'empty-state';
+  empty.id = 'emptyState';
+  empty.innerHTML = '<div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg></div>' +
+    '<h2>DeepAgents Chat</h2>' +
+    '<p>与 GLM-5.1 驱动的智能 Agent 对话，它可以规划任务、调用工具、自主完成复杂工作。</p>' +
+    '<div class="hints">' +
+    '<button class="hint-chip" onclick="sendHint(this)">现在是几点？</button>' +
+    '<button class="hint-chip" onclick="sendHint(this)">帮我记住我喜欢编程</button>' +
+    '<button class="hint-chip" onclick="sendHint(this)">搜一下最新的 AI 新闻</button>' +
+    '<button class="hint-chip" onclick="sendHint(this)">知识库里有什么？</button>' +
+    '</div>';
+  messagesInner.appendChild(empty);
+  updateClearBtn();
+}
 
 /* ── Tool categories ── */
 const MEMORY_TOOLS = ['save_memory', 'recall_memory', 'list_memories'];
@@ -1700,7 +1789,8 @@ async function handleSubmit(e) {
   inputEl.value = '';
   inputEl.style.height = 'auto';
   state.isStreaming = true;
-  sendBtn.disabled = true;
+  sendBtn.style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'flex';
   setStatus('Thinking', true);
 
   if (state.abortController) state.abortController.abort();
@@ -1735,7 +1825,8 @@ async function handleSubmit(e) {
         bodyEl.classList.add('md-body');
       }
       state.isStreaming = false;
-      sendBtn.disabled = false;
+      sendBtn.style.display = 'flex';
+      document.getElementById('stopBtn').style.display = 'none';
       setStatus('Ready', false);
       return;
     }
@@ -1784,10 +1875,14 @@ async function handleSubmit(e) {
       }
     }
   } catch (err) {
-    if (err.name === 'AbortError') return;
-    removeThinking();
-    bodyEl.innerHTML = renderMarkdown('[Connection Error] ' + err.message);
-    bodyEl.classList.add('md-body');
+    if (err.name === 'AbortError') {
+      removeThinking();
+      if (fullContent.ref) fullContent.ref += '\n\n*[已停止生成]*';
+    } else {
+      removeThinking();
+      bodyEl.innerHTML = renderMarkdown('[Connection Error] ' + err.message);
+      bodyEl.classList.add('md-body');
+    }
   }
 
   // Final render to ensure last tokens are parsed
@@ -1807,15 +1902,19 @@ async function handleSubmit(e) {
     if (state.history.length > MAX_HISTORY_TURNS * 2) {
       state.history = state.history.slice(-MAX_HISTORY_TURNS * 2);
     }
+    saveHistory();
   }
 
   state.isStreaming = false;
   state.abortController = null;
-  sendBtn.disabled = false;
+  sendBtn.style.display = 'flex';
+  document.getElementById('stopBtn').style.display = 'none';
   setStatus('Ready', false);
   scrollBottom();
   inputEl.focus();
 }
+
+loadHistory();
 </script>
 </body>
 </html>

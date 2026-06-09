@@ -44,9 +44,41 @@
 
 | # | 任务 | 状态 | 说明 |
 |---|------|------|------|
-| 1 | 长期记忆工具 | todo | save_memory / recall_memory / list_memories，基于 InMemoryStore |
+| 1 | 长期记忆工具 | done | save_memory / recall_memory / list_memories，基于 InMemoryStore |
 | 2 | 记忆 UI | todo | Inspector 面板展示记忆读写过程（紫色卡片） |
-| 3 | 短期记忆优化 | deferred | 服务端管理对话历史（InMemorySaver + thread_id），待长期记忆完成后建设 |
+| 3 | 记忆持久化 | todo | 用 HF Dataset 存储 memories.json，容器重启后自动恢复（见下方方案） |
+| 4 | 短期记忆优化 | deferred | 服务端管理对话历史（InMemorySaver + thread_id），待长期记忆完成后建设 |
+
+### 记忆持久化方案（HF Spaces 免费方案）
+
+**问题**：当前 `InMemoryStore` 纯内存存储，HF Spaces 容器休眠/重启后记忆丢失。
+
+**方案**：用 HF Dataset 仓库做持久化存储，容器启动时拉取恢复，退出时上传保存。
+
+**数据流**：
+```
+容器启动 → hf_hub_download(memories.json) → 加载到 InMemoryStore
+运行中   → save_memory 读写内存（无感知）
+退出/定时 → 内存序列化为 JSON → upload_file 到 HF Dataset
+```
+
+**前置操作**（需手动）：
+- [ ] 创建 HF Dataset 仓库 `david-qiuwenhui/deepagents-memory`（Private，空仓库即可）
+- [ ] 确认 `HF_TOKEN` 有 Dataset 读写权限（Write 级别即可）
+
+**代码改造**：
+
+| 改动 | 文件 | 量 |
+|------|------|----|
+| 新增 | `src/agent/persistent_store.py` | ~50 行，封装 huggingface_hub 上传/下载 |
+| 改动 | `src/agent/server.py` | +10 行，启动加载 + shutdown 保存 |
+| 改动 | `pyproject.toml` | +1 行，添加 `huggingface_hub` 依赖 |
+| 不动 | `memory_tools.py`、前端 | 0 改动 |
+
+**注意事项**：
+- 写入加防抖（30 秒合并上传一次），避免 HF API 限流
+- 单实例场景，无并发冲突
+- 内网部署时可替换为本地文件存储，接口不变
 
 ### 完成标准
 
