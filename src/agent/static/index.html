@@ -145,6 +145,42 @@ body {
   transition: all 0.3s;
 }
 
+/* ── Icon Legend ── */
+.icon-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-dot.tools { background: var(--blue); }
+.legend-dot.memory { background: var(--purple); }
+.legend-dot.wiki { background: var(--teal); }
+.legend-dot.skill { background: var(--accent); }
+
+.legend-sep {
+  width: 1px;
+  height: 12px;
+  background: var(--border);
+  margin: 0 2px;
+}
+
 .status-badge.streaming {
   color: var(--accent);
   border-color: var(--accent);
@@ -1149,6 +1185,15 @@ body {
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
+        <div class="icon-legend">
+          <span class="legend-item"><span class="legend-dot tools"></span>Tools</span>
+          <span class="legend-sep"></span>
+          <span class="legend-item"><span class="legend-dot memory"></span>Memory</span>
+          <span class="legend-sep"></span>
+          <span class="legend-item"><span class="legend-dot wiki"></span>Wiki</span>
+          <span class="legend-sep"></span>
+          <span class="legend-item"><span class="legend-dot skill"></span>Skill</span>
+        </div>
         <button class="inspector-toggle" id="inspectorToggle" onclick="togglePanel()" aria-expanded="false" aria-label="Toggle Inspector">
           <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
           <span>Inspect</span>
@@ -1614,6 +1659,9 @@ const RENDER_DEBOUNCE_MS = 80;
 
 function processFrame(data, bodyEl, fullContent) {
   logEvent(data);
+  if (data.type === 'skills') {
+    return fullContent;
+  }
   if (data.type === 'token') {
     if (!fullContent._started) {
       const indicator = bodyEl.querySelector('.typing-indicator');

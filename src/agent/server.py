@@ -155,6 +155,11 @@ async def chat(request: Request) -> StreamingResponse:
 
     async def generate() -> AsyncGenerator[str, None]:
         yield ": ping\n\n"
+        matched_skills = [
+            {"name": s.name, "description": s.description}
+            for s in SKILL_LOADER.match(user_message)
+        ]
+        yield f"data: {json.dumps({'type': 'skills', 'skills': matched_skills}, ensure_ascii=False)}\n\n"
         try:
             async for event in agent.astream_events(
                 {"messages": messages},
