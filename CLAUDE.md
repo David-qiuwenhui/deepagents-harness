@@ -84,3 +84,15 @@ Key deployment considerations:
 - Use `Depends()` for auth, not `BaseHTTPMiddleware` (breaks SSE streaming)
 
 Full deployment guide: `docs/hf-spaces-deployment.md`
+
+## Framework Learning
+
+项目对 DeepAgents 框架的使用率仅约 **10-15%**（详见 `docs/articles/2026-06-09-deepagents-framework-usage-analysis.md`）。
+
+学习伴生仓库：[deepagents-learning](https://github.com/qiuwenhui/deepagents-learning) — 通过最小可运行示例系统性学习框架核心概念（State Graph、Middleware、Store、Checkpointer、SubAgent），学完后回到本项目用框架原生能力替换手写代码。
+
+## Roadmap
+
+功能迭代规划见 `docs/tasks/roadmap.md`。当前阶段：
+- 阶段一（工具）✅ 阶段二（记忆）进行中 阶段三（Wiki）进行中
+- 待实施：记忆持久化（HF Dataset 方案）、多 Agent 协作、Human-in-the-Loop
